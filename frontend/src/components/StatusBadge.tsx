@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { RepairStatus } from "@/types/neon";
+import type { RepairStatus } from "@/types/workOrder";
 
 const STATUS_VARIANT: Record<
   RepairStatus,

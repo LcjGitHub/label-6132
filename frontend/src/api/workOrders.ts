@@ -1,4 +1,4 @@
-import type { WorkOrder, WorkOrderFormData } from "@/types/neon";
+import type { WorkOrder, WorkOrderFormData } from "@/types/workOrder";
 import { apiClient } from "./client";
 
 /**

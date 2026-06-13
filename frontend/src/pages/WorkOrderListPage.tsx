@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteOrder, fetchOrders } from "@/api/signs";
+import { deleteOrder, fetchOrders } from "@/api/workOrders";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { RepairStatus } from "@/types/neon";
+import type { RepairStatus } from "@/types/workOrder";
 
 const FILTER_OPTIONS: { label: string; value: RepairStatus | null }[] = [
   { label: "全部", value: null },
@@ -19,7 +19,7 @@ const FILTER_OPTIONS: { label: string; value: RepairStatus | null }[] = [
 /**
  * 工单列表页：表格展示 + 维修状态筛选。
  */
-export function SignListPage({
+export function WorkOrderListPage({
   statusFilter,
   onStatusFilterChange,
 }: {
@@ -104,35 +104,35 @@ export function SignListPage({
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-secondary/30">
-                <tr className="text-left">
+                <tr className="text-left align-top">
                   <th className="px-4 py-3 font-semibold w-16">ID</th>
-                  <th className="px-4 py-3 font-semibold">关联店名</th>
+                  <th className="px-4 py-3 font-semibold whitespace-nowrap">关联店名</th>
                   <th className="px-4 py-3 font-semibold">故障描述</th>
-                  <th className="px-4 py-3 font-semibold w-28">维修状态</th>
-                  <th className="px-4 py-3 font-semibold w-32">登记日期</th>
-                  <th className="px-4 py-3 font-semibold w-36 text-right">操作</th>
+                  <th className="px-4 py-3 font-semibold w-28 whitespace-nowrap">维修状态</th>
+                  <th className="px-4 py-3 font-semibold w-32 whitespace-nowrap">登记日期</th>
+                  <th className="px-4 py-3 font-semibold w-36 text-right whitespace-nowrap">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {orders.map((order) => (
                   <tr
                     key={order.id}
-                    className="transition-colors hover:bg-secondary/20"
+                    className="transition-colors hover:bg-secondary/20 align-top"
                   >
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                       #{order.id}
                     </td>
-                    <td className="px-4 py-3 font-medium">{order.shop_name}</td>
-                    <td className="px-4 py-3 text-muted-foreground max-w-xs truncate" title={order.fault_description}>
+                    <td className="px-4 py-3 font-medium whitespace-nowrap">{order.shop_name}</td>
+                    <td className="px-4 py-3 text-muted-foreground break-words leading-relaxed">
                       {order.fault_description}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <StatusBadge status={order.status} />
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                       {order.registration_date}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2">
                         <Button
                           variant="ghost"

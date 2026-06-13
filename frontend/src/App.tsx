@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { SignListPage } from "@/pages/SignListPage";
-import { SignFormPage } from "@/pages/SignFormPage";
-import type { RepairStatus } from "@/types/neon";
+import { WorkOrderListPage } from "@/pages/WorkOrderListPage";
+import { WorkOrderFormPage } from "@/pages/WorkOrderFormPage";
+import type { RepairStatus } from "@/types/workOrder";
 
 export function App() {
   const [statusFilter, setStatusFilter] = useState<RepairStatus | null>(null);
@@ -15,14 +15,14 @@ export function App() {
             <Route
               path="/"
               element={
-                <SignListPage
+                <WorkOrderListPage
                   statusFilter={statusFilter}
                   onStatusFilterChange={setStatusFilter}
                 />
               }
             />
-            <Route path="/new" element={<SignFormPage />} />
-            <Route path="/edit/:id" element={<SignFormPage />} />
+            <Route path="/new" element={<WorkOrderFormPage />} />
+            <Route path="/edit/:id" element={<WorkOrderFormPage />} />
           </Routes>
         </div>
       </div>

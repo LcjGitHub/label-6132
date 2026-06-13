@@ -9,7 +9,7 @@ import {
   deleteOrder,
   fetchOrder,
   updateOrder,
-} from "@/api/signs";
+} from "@/api/workOrders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { workOrderSchema, type WorkOrderSchema } from "@/lib/schemas";
-import type { RepairStatus } from "@/types/neon";
+import type { RepairStatus } from "@/types/workOrder";
 
 const STATUS_OPTIONS: RepairStatus[] = ["待处理", "进行中", "已完成"];
 
@@ -33,7 +33,7 @@ function todayStr(): string {
 /**
  * 工单表单页：新建或编辑。
  */
-export function SignFormPage() {
+export function WorkOrderFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
   const orderId = Number(id);
