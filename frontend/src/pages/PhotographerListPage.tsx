@@ -12,6 +12,7 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 /**
  * 拍摄者列表页：卡片展示 + 城市筛选。
@@ -20,12 +21,14 @@ export function PhotographerListPage() {
   const queryClient = useQueryClient();
   const [cityFilter, setCityFilter] = useState<string | null>(null);
 
-  const { data: photographers, isLoading, isError, error } = useQuery({
+  const { data: photographers, isLoading, isError } = useQuery({
     queryKey: ["photographers", cityFilter],
     queryFn: () => fetchPhotographers(cityFilter ?? undefined),
   });
 
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   useEffect(() => {
     document.title = "招牌拍摄者档案管理";
@@ -39,11 +42,23 @@ export function PhotographerListPage() {
     },
   });
 
-  const handleDelete = (id: number) => {
-    if (window.confirm("确定删除这位拍摄者？")) {
-      setDeletingId(id);
-      deleteMutation.mutate(id);
+  const handleDeleteClick = (id: number) => {
+    setPendingDeleteId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (pendingDeleteId !== null) {
+      setDeletingId(pendingDeleteId);
+      deleteMutation.mutate(pendingDeleteId);
     }
+    setConfirmOpen(false);
+    setPendingDeleteId(null);
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmOpen(false);
+    setPendingDeleteId(null);
   };
 
   const cities = [...new Set((photographers ?? []).map((p) => p.city))].sort();
@@ -69,22 +84,32 @@ export function PhotographerListPage() {
 
       {cities.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          <Badge
-            variant={cityFilter === null ? "default" : "outline"}
-            className="cursor-pointer px-3 py-1"
+          <button
+            type="button"
             onClick={() => setCityFilter(null)}
+            className={
+              "inline-flex items-center rounded-md border px-3 py-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 " +
+              (cityFilter === null
+                ? "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80"
+                : "text-foreground hover:bg-secondary/50")
+            }
           >
             全部
-          </Badge>
+          </button>
           {cities.map((city) => (
-            <Badge
+            <button
               key={city}
-              variant={cityFilter === city ? "default" : "outline"}
-              className="cursor-pointer px-3 py-1"
+              type="button"
               onClick={() => setCityFilter(city)}
+              className={
+                "inline-flex items-center rounded-md border px-3 py-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 " +
+                (cityFilter === city
+                  ? "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80"
+                  : "text-foreground hover:bg-secondary/50")
+              }
             >
               {city}
-            </Badge>
+            </button>
           ))}
         </div>
       )}
@@ -95,7 +120,7 @@ export function PhotographerListPage() {
 
       {isError && (
         <p className="text-destructive text-center py-12">
-          加载失败：{(error as Error).message}
+          无法连接服务，请确认后端已启动
         </p>
       )}
 
@@ -153,7 +178,7 @@ export function PhotographerListPage() {
                     size="sm"
                     className="text-destructive hover:text-destructive gap-1"
                     disabled={deletingId === photographer.id}
-                    onClick={() => handleDelete(photographer.id)}
+                    onClick={() => handleDeleteClick(photographer.id)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     删除
@@ -164,6 +189,17 @@ export function PhotographerListPage() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="删除拍摄者"
+        description="确定删除这位拍摄者？此操作不可撤销。"
+        confirmText="删除"
+        cancelText="取消"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 }

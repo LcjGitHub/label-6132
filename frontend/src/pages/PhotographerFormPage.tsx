@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { photographerSchema, type PhotographerSchema } from "@/lib/schemas";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 /**
  * 拍摄者表单页：新建或编辑。
@@ -69,6 +70,8 @@ export function PhotographerFormPage() {
     },
   });
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   const deleteMutation = useMutation({
     mutationFn: () => deletePhotographer(photographerId),
     onSuccess: () => {
@@ -76,6 +79,19 @@ export function PhotographerFormPage() {
       navigate("/photographers");
     },
   });
+
+  const handleDeleteClick = () => {
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setConfirmOpen(false);
+    deleteMutation.mutate();
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmOpen(false);
+  };
 
   const onSubmit = handleSubmit((data) => saveMutation.mutate(data));
 
@@ -154,11 +170,7 @@ export function PhotographerFormPage() {
               variant="destructive"
               className="ml-auto"
               disabled={deleteMutation.isPending}
-              onClick={() => {
-                if (window.confirm("确定删除这位拍摄者？")) {
-                  deleteMutation.mutate();
-                }
-              }}
+              onClick={handleDeleteClick}
             >
               <Trash2 className="h-4 w-4" />
               删除
@@ -168,10 +180,21 @@ export function PhotographerFormPage() {
 
         {saveMutation.isError && (
           <p className="text-sm text-destructive">
-            保存失败：{(saveMutation.error as Error).message}
+            保存失败，请检查输入内容后重试
           </p>
         )}
       </form>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="删除拍摄者"
+        description="确定删除这位拍摄者？此操作不可撤销。"
+        confirmText="删除"
+        cancelText="取消"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 }

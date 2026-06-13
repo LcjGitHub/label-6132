@@ -3,7 +3,7 @@
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 StatusType = Literal["待处理", "进行中", "已完成"]
 SignStatusType = Literal["亮", "灭", "拆"]
@@ -55,8 +55,20 @@ class PhotographerBase(BaseModel):
     """拍摄者基础字段。"""
 
     name: str = Field(..., min_length=1, description="姓名")
-    phone: str = Field(..., min_length=1, description="联系电话")
+    phone: str = Field(..., description="联系电话")
     city: str = Field(..., min_length=1, description="常用拍摄城市")
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("联系电话不能为空")
+        if len(v) != 11:
+            raise ValueError("联系电话必须为11位数字")
+        if not v.isdigit():
+            raise ValueError("联系电话必须为纯数字")
+        return v
 
 
 class PhotographerCreate(PhotographerBase):

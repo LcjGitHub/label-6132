@@ -15,7 +15,12 @@ export type WorkOrderSchema = z.infer<typeof workOrderSchema>;
 /** 拍摄者表单 Zod 校验 schema */
 export const photographerSchema = z.object({
   name: z.string().min(1, "请输入姓名"),
-  phone: z.string().min(1, "请输入联系电话"),
+  phone: z
+    .string()
+    .trim()
+    .min(1, "请输入联系电话")
+    .regex(/^\d+$/, "联系电话必须为纯数字")
+    .length(11, "联系电话必须为11位数字"),
   city: z.string().min(1, "请输入常用拍摄城市"),
 });
 
