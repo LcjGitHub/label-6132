@@ -1,21 +1,19 @@
-/** 霓虹灯招牌状态 */
-export type NeonStatus = "亮" | "灭" | "拆";
+/** 维修状态 */
+export type RepairStatus = "待处理" | "进行中" | "已完成";
 
-/** 霓虹灯招牌记录 */
-export interface NeonSign {
+/** 维修工单记录 */
+export interface WorkOrder {
   id: number;
   shop_name: string;
-  city: string;
-  address: string;
-  status: NeonStatus;
-  estimated_era: string;
+  fault_description: string;
+  status: RepairStatus;
+  registration_date: string;
 }
 
-/** 创建/更新招牌表单数据 */
-export interface NeonSignFormData {
+/** 创建/更新工单表单数据 */
+export interface WorkOrderFormData {
   shop_name: string;
-  city: string;
-  address: string;
-  status: NeonStatus;
-  estimated_era: string;
+  fault_description: string;
+  status: RepairStatus;
+  registration_date: string;
 }

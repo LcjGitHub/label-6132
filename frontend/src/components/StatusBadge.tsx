@@ -1,18 +1,18 @@
 import { Badge } from "@/components/ui/badge";
-import type { NeonStatus } from "@/types/neon";
+import type { RepairStatus } from "@/types/neon";
 
 const STATUS_VARIANT: Record<
-  NeonStatus,
-  "on" | "off" | "demolished"
+  RepairStatus,
+  "pending" | "processing" | "done"
 > = {
-  亮: "on",
-  灭: "off",
-  拆: "demolished",
+  待处理: "pending",
+  进行中: "processing",
+  已完成: "done",
 };
 
 /**
- * 根据招牌状态显示对应颜色的 Badge。
+ * 根据维修状态显示对应颜色的 Badge。
  */
-export function StatusBadge({ status }: { status: NeonStatus }) {
+export function StatusBadge({ status }: { status: RepairStatus }) {
   return <Badge variant={STATUS_VARIANT[status]}>{status}</Badge>;
 }

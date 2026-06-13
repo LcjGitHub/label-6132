@@ -1,14 +1,15 @@
-"""老式霓虹灯招牌存档 API。"""
+"""霓虹灯维修工单管理 API。"""
 
+from datetime import date
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_connection, init_db
-from models import NeonSign, NeonSignCreate, NeonSignUpdate
+from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate
 
-app = FastAPI(title="霓虹灯招牌存档 API", version="1.0.0")
+app = FastAPI(title="霓虹灯维修工单管理 API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,124 +26,121 @@ def on_startup() -> None:
     init_db()
 
 
-def row_to_sign(row) -> NeonSign:
+def row_to_order(row) -> WorkOrder:
     """将数据库行转为 Pydantic 模型。"""
-    return NeonSign(
+    return WorkOrder(
         id=row["id"],
         shop_name=row["shop_name"],
-        city=row["city"],
-        address=row["address"],
+        fault_description=row["fault_description"],
         status=row["status"],
-        estimated_era=row["estimated_era"],
+        registration_date=date.fromisoformat(row["registration_date"]),
     )
 
 
-@app.get("/api/signs", response_model=list[NeonSign])
-def list_signs(status: Optional[str] = None) -> list[NeonSign]:
-    """获取招牌列表，可按状态筛选。"""
+@app.get("/api/orders", response_model=list[WorkOrder])
+def list_orders(status: Optional[str] = None) -> list[WorkOrder]:
+    """获取工单列表，可按维修状态筛选。"""
     conn = get_connection()
     try:
         if status:
             rows = conn.execute(
-                "SELECT * FROM neon_signs WHERE status = ? ORDER BY id",
+                "SELECT * FROM work_orders WHERE status = ? ORDER BY id",
                 (status,),
             ).fetchall()
         else:
             rows = conn.execute(
-                "SELECT * FROM neon_signs ORDER BY id"
+                "SELECT * FROM work_orders ORDER BY id"
             ).fetchall()
-        return [row_to_sign(r) for r in rows]
+        return [row_to_order(r) for r in rows]
     finally:
         conn.close()
 
 
-@app.get("/api/signs/{sign_id}", response_model=NeonSign)
-def get_sign(sign_id: int) -> NeonSign:
-    """获取单条招牌。"""
+@app.get("/api/orders/{order_id}", response_model=WorkOrder)
+def get_order(order_id: int) -> WorkOrder:
+    """获取单条工单。"""
     conn = get_connection()
     try:
         row = conn.execute(
-            "SELECT * FROM neon_signs WHERE id = ?", (sign_id,)
+            "SELECT * FROM work_orders WHERE id = ?", (order_id,)
         ).fetchone()
         if not row:
-            raise HTTPException(status_code=404, detail="招牌不存在")
-        return row_to_sign(row)
+            raise HTTPException(status_code=404, detail="工单不存在")
+        return row_to_order(row)
     finally:
         conn.close()
 
 
-@app.post("/api/signs", response_model=NeonSign, status_code=201)
-def create_sign(body: NeonSignCreate) -> NeonSign:
-    """新建招牌。"""
+@app.post("/api/orders", response_model=WorkOrder, status_code=201)
+def create_order(body: WorkOrderCreate) -> WorkOrder:
+    """新建工单。"""
     conn = get_connection()
     try:
         cursor = conn.execute(
             """
-            INSERT INTO neon_signs (shop_name, city, address, status, estimated_era)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO work_orders (shop_name, fault_description, status, registration_date)
+            VALUES (?, ?, ?, ?)
             """,
             (
                 body.shop_name,
-                body.city,
-                body.address,
+                body.fault_description,
                 body.status,
-                body.estimated_era,
+                body.registration_date.isoformat(),
             ),
         )
         conn.commit()
         row = conn.execute(
-            "SELECT * FROM neon_signs WHERE id = ?", (cursor.lastrowid,)
+            "SELECT * FROM work_orders WHERE id = ?", (cursor.lastrowid,)
         ).fetchone()
-        return row_to_sign(row)
+        return row_to_order(row)
     finally:
         conn.close()
 
 
-@app.put("/api/signs/{sign_id}", response_model=NeonSign)
-def update_sign(sign_id: int, body: NeonSignUpdate) -> NeonSign:
-    """更新招牌。"""
+@app.put("/api/orders/{order_id}", response_model=WorkOrder)
+def update_order(order_id: int, body: WorkOrderUpdate) -> WorkOrder:
+    """更新工单。"""
     conn = get_connection()
     try:
         existing = conn.execute(
-            "SELECT id FROM neon_signs WHERE id = ?", (sign_id,)
+            "SELECT id FROM work_orders WHERE id = ?", (order_id,)
         ).fetchone()
         if not existing:
-            raise HTTPException(status_code=404, detail="招牌不存在")
+            raise HTTPException(status_code=404, detail="工单不存在")
         conn.execute(
             """
-            UPDATE neon_signs
-            SET shop_name = ?, city = ?, address = ?, status = ?, estimated_era = ?
+            UPDATE work_orders
+            SET shop_name = ?, fault_description = ?, status = ?, registration_date = ?
             WHERE id = ?
             """,
             (
                 body.shop_name,
-                body.city,
-                body.address,
+                body.fault_description,
                 body.status,
-                body.estimated_era,
-                sign_id,
+                body.registration_date.isoformat(),
+                order_id,
             ),
         )
         conn.commit()
         row = conn.execute(
-            "SELECT * FROM neon_signs WHERE id = ?", (sign_id,)
+            "SELECT * FROM work_orders WHERE id = ?", (order_id,)
         ).fetchone()
-        return row_to_sign(row)
+        return row_to_order(row)
     finally:
         conn.close()
 
 
-@app.delete("/api/signs/{sign_id}", status_code=204)
-def delete_sign(sign_id: int) -> None:
-    """删除招牌。"""
+@app.delete("/api/orders/{order_id}", status_code=204)
+def delete_order(order_id: int) -> None:
+    """删除工单。"""
     conn = get_connection()
     try:
         existing = conn.execute(
-            "SELECT id FROM neon_signs WHERE id = ?", (sign_id,)
+            "SELECT id FROM work_orders WHERE id = ?", (order_id,)
         ).fetchone()
         if not existing:
-            raise HTTPException(status_code=404, detail="招牌不存在")
-        conn.execute("DELETE FROM neon_signs WHERE id = ?", (sign_id,))
+            raise HTTPException(status_code=404, detail="工单不存在")
+        conn.execute("DELETE FROM work_orders WHERE id = ?", (order_id,))
         conn.commit()
     finally:
         conn.close()

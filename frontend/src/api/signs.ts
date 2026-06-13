@@ -1,45 +1,45 @@
-import type { NeonSign, NeonSignFormData } from "@/types/neon";
+import type { WorkOrder, WorkOrderFormData } from "@/types/neon";
 import { apiClient } from "./client";
 
 /**
- * 获取招牌列表，可选状态筛选。
+ * 获取工单列表，可选状态筛选。
  */
-export async function fetchSigns(status?: string): Promise<NeonSign[]> {
+export async function fetchOrders(status?: string): Promise<WorkOrder[]> {
   const params = status ? { status } : {};
-  const { data } = await apiClient.get<NeonSign[]>("/signs", { params });
+  const { data } = await apiClient.get<WorkOrder[]>("/orders", { params });
   return data;
 }
 
 /**
- * 获取单条招牌。
+ * 获取单条工单。
  */
-export async function fetchSign(id: number): Promise<NeonSign> {
-  const { data } = await apiClient.get<NeonSign>(`/signs/${id}`);
+export async function fetchOrder(id: number): Promise<WorkOrder> {
+  const { data } = await apiClient.get<WorkOrder>(`/orders/${id}`);
   return data;
 }
 
 /**
- * 新建招牌。
+ * 新建工单。
  */
-export async function createSign(body: NeonSignFormData): Promise<NeonSign> {
-  const { data } = await apiClient.post<NeonSign>("/signs", body);
+export async function createOrder(body: WorkOrderFormData): Promise<WorkOrder> {
+  const { data } = await apiClient.post<WorkOrder>("/orders", body);
   return data;
 }
 
 /**
- * 更新招牌。
+ * 更新工单。
  */
-export async function updateSign(
+export async function updateOrder(
   id: number,
-  body: NeonSignFormData
-): Promise<NeonSign> {
-  const { data } = await apiClient.put<NeonSign>(`/signs/${id}`, body);
+  body: WorkOrderFormData
+): Promise<WorkOrder> {
+  const { data } = await apiClient.put<WorkOrder>(`/orders/${id}`, body);
   return data;
 }
 
 /**
- * 删除招牌。
+ * 删除工单。
  */
-export async function deleteSign(id: number): Promise<void> {
-  await apiClient.delete(`/signs/${id}`);
+export async function deleteOrder(id: number): Promise<void> {
+  await apiClient.delete(`/orders/${id}`);
 }

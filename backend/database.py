@@ -3,43 +3,38 @@
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "data" / "neon.db"
+DB_PATH = Path(__file__).parent.parent / "data" / "workorders.db"
 
 SEED_DATA = [
     {
         "shop_name": "红星电影院",
-        "city": "上海",
-        "address": "淮海中路 500 号",
-        "status": "亮",
-        "estimated_era": "1980年代",
+        "fault_description": "入口处'红星'二字不亮，变压器异响",
+        "status": "待处理",
+        "registration_date": "2026-06-01",
     },
     {
         "shop_name": "和平饭店",
-        "city": "上海",
-        "address": "南京东路 20 号",
-        "status": "灭",
-        "estimated_era": "1930年代",
+        "fault_description": "西侧墙面霓虹灯部分灯管闪烁，需更换镇流器",
+        "status": "进行中",
+        "registration_date": "2026-06-05",
     },
     {
         "shop_name": "老广茶楼",
-        "city": "广州",
-        "address": "上下九步行街 88 号",
-        "status": "亮",
-        "estimated_era": "1960年代",
+        "fault_description": "招牌整体不亮，疑似主电源线路故障",
+        "status": "已完成",
+        "registration_date": "2026-06-02",
     },
     {
         "shop_name": "锦江饭店",
-        "city": "成都",
-        "address": "人民南路 80 号",
-        "status": "拆",
-        "estimated_era": "1950年代",
+        "fault_description": "楼顶'锦'字中间三根管脱落，已报修等待配件",
+        "status": "待处理",
+        "registration_date": "2026-06-08",
     },
     {
         "shop_name": "霓虹酒吧",
-        "city": "香港",
-        "address": "兰桂坊 12 号",
-        "status": "灭",
-        "estimated_era": "1990年代",
+        "fault_description": "吧台背景灯颜色偏色，蓝色灯管老化需整套更换",
+        "status": "进行中",
+        "registration_date": "2026-06-10",
     },
 ]
 
@@ -58,30 +53,28 @@ def init_db() -> None:
     try:
         conn.execute(
             """
-            CREATE TABLE IF NOT EXISTS neon_signs (
+            CREATE TABLE IF NOT EXISTS work_orders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 shop_name TEXT NOT NULL,
-                city TEXT NOT NULL,
-                address TEXT NOT NULL,
-                status TEXT NOT NULL CHECK(status IN ('亮', '灭', '拆')),
-                estimated_era TEXT NOT NULL
+                fault_description TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN ('待处理', '进行中', '已完成')),
+                registration_date TEXT NOT NULL
             )
             """
         )
-        count = conn.execute("SELECT COUNT(*) FROM neon_signs").fetchone()[0]
+        count = conn.execute("SELECT COUNT(*) FROM work_orders").fetchone()[0]
         if count == 0:
             for row in SEED_DATA:
                 conn.execute(
                     """
-                    INSERT INTO neon_signs (shop_name, city, address, status, estimated_era)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO work_orders (shop_name, fault_description, status, registration_date)
+                    VALUES (?, ?, ?, ?)
                     """,
                     (
                         row["shop_name"],
-                        row["city"],
-                        row["address"],
+                        row["fault_description"],
                         row["status"],
-                        row["estimated_era"],
+                        row["registration_date"],
                     ),
                 )
         conn.commit()

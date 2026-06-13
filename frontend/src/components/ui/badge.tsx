@@ -18,6 +18,11 @@ const badgeVariants = cva(
         off: "border-transparent bg-slate-500/90 text-white shadow hover:bg-slate-500",
         demolished:
           "border-transparent bg-orange-600/90 text-white shadow hover:bg-orange-600",
+        pending:
+          "border-transparent bg-amber-500/90 text-white shadow hover:bg-amber-500",
+        processing:
+          "border-transparent bg-sky-500/90 text-white shadow hover:bg-sky-500",
+        done: "border-transparent bg-emerald-500/90 text-white shadow hover:bg-emerald-500",
       },
     },
     defaultVariants: {

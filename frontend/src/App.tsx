@@ -2,10 +2,10 @@ import { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { SignListPage } from "@/pages/SignListPage";
 import { SignFormPage } from "@/pages/SignFormPage";
-import type { NeonStatus } from "@/types/neon";
+import type { RepairStatus } from "@/types/neon";
 
 export function App() {
-  const [statusFilter, setStatusFilter] = useState<NeonStatus | null>(null);
+  const [statusFilter, setStatusFilter] = useState<RepairStatus | null>(null);
 
   return (
     <BrowserRouter>
