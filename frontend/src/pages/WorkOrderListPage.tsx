@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteOrder, fetchOrders } from "@/api/workOrders";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -33,6 +33,10 @@ export function WorkOrderListPage({
   });
 
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  useEffect(() => {
+    document.title = "霓虹灯维修工单管理";
+  }, []);
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteOrder(id),

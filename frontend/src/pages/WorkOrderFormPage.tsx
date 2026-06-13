@@ -73,6 +73,10 @@ export function WorkOrderFormPage() {
     }
   }, [order, setValue]);
 
+  useEffect(() => {
+    document.title = isEdit ? "编辑工单" : "新增工单";
+  }, [isEdit]);
+
   const saveMutation = useMutation({
     mutationFn: (data: WorkOrderSchema) =>
       isEdit ? updateOrder(orderId, data) : createOrder(data),
