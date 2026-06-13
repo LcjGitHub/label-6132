@@ -25,3 +25,13 @@ export const photographerSchema = z.object({
 });
 
 export type PhotographerSchema = z.infer<typeof photographerSchema>;
+
+/** 故事表单 Zod 校验 schema */
+export const storySchema = z.object({
+  title: z.string().min(1, "请输入标题"),
+  content: z.string().min(1, "请输入正文"),
+  shop_name: z.string().min(1, "请输入关联店名"),
+  publish_date: z.string().min(1, "请选择发布日期"),
+});
+
+export type StorySchema = z.infer<typeof storySchema>;

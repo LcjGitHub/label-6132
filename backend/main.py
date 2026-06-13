@@ -7,13 +7,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_connection, init_db
-from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate, CitySignStats, SignStatsResponse, Photographer, PhotographerCreate, PhotographerUpdate
+from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate, CitySignStats, SignStatsResponse, Photographer, PhotographerCreate, PhotographerUpdate, Story, StoryCreate, StoryUpdate
 
 app = FastAPI(title="霓虹灯维修工单管理 API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4101", "http://127.0.0.1:4101", "http://localhost:4102", "http://127.0.0.1:4102", "http://localhost:4103", "http://127.0.0.1:4103"],
+    allow_origins=["http://localhost:4101", "http://127.0.0.1:4101", "http://localhost:4102", "http://127.0.0.1:4102", "http://localhost:4103", "http://127.0.0.1:4103", "http://localhost:4104", "http://127.0.0.1:4104"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -306,6 +306,120 @@ def delete_photographer(photographer_id: int) -> None:
         if not existing:
             raise HTTPException(status_code=404, detail="拍摄者不存在")
         conn.execute("DELETE FROM photographers WHERE id = ?", (photographer_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def row_to_story(row) -> Story:
+    """将数据库行转为故事 Pydantic 模型。"""
+    return Story(
+        id=row["id"],
+        title=row["title"],
+        content=row["content"],
+        shop_name=row["shop_name"],
+        publish_date=date.fromisoformat(row["publish_date"]),
+    )
+
+
+@app.get("/api/stories", response_model=list[Story])
+def list_stories() -> list[Story]:
+    """获取故事列表，按发布日期倒序排列。"""
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM stories ORDER BY publish_date DESC, id DESC"
+        ).fetchall()
+        return [row_to_story(r) for r in rows]
+    finally:
+        conn.close()
+
+
+@app.get("/api/stories/{story_id}", response_model=Story)
+def get_story(story_id: int) -> Story:
+    """获取单条故事。"""
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT * FROM stories WHERE id = ?", (story_id,)
+        ).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="故事不存在")
+        return row_to_story(row)
+    finally:
+        conn.close()
+
+
+@app.post("/api/stories", response_model=Story, status_code=201)
+def create_story(body: StoryCreate) -> Story:
+    """新建故事。"""
+    conn = get_connection()
+    try:
+        cursor = conn.execute(
+            """
+            INSERT INTO stories (title, content, shop_name, publish_date)
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                body.title,
+                body.content,
+                body.shop_name,
+                body.publish_date.isoformat(),
+            ),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM stories WHERE id = ?", (cursor.lastrowid,)
+        ).fetchone()
+        return row_to_story(row)
+    finally:
+        conn.close()
+
+
+@app.put("/api/stories/{story_id}", response_model=Story)
+def update_story(story_id: int, body: StoryUpdate) -> Story:
+    """更新故事。"""
+    conn = get_connection()
+    try:
+        existing = conn.execute(
+            "SELECT id FROM stories WHERE id = ?", (story_id,)
+        ).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="故事不存在")
+        conn.execute(
+            """
+            UPDATE stories
+            SET title = ?, content = ?, shop_name = ?, publish_date = ?
+            WHERE id = ?
+            """,
+            (
+                body.title,
+                body.content,
+                body.shop_name,
+                body.publish_date.isoformat(),
+                story_id,
+            ),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM stories WHERE id = ?", (story_id,)
+        ).fetchone()
+        return row_to_story(row)
+    finally:
+        conn.close()
+
+
+@app.delete("/api/stories/{story_id}", status_code=204)
+def delete_story(story_id: int) -> None:
+    """删除故事。"""
+    conn = get_connection()
+    try:
+        existing = conn.execute(
+            "SELECT id FROM stories WHERE id = ?", (story_id,)
+        ).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="故事不存在")
+        conn.execute("DELETE FROM stories WHERE id = ?", (story_id,))
         conn.commit()
     finally:
         conn.close()

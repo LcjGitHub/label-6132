@@ -80,6 +80,27 @@ PHOTOGRAPHER_SEED_DATA = [
     {"name": "王强", "phone": "13700137003", "city": "广州"},
 ]
 
+STORY_SEED_DATA = [
+    {
+        "title": "和平饭店：外滩边的霓虹传奇",
+        "content": "夜幕降临，外滩的灯火次第亮起。和平饭店楼顶的墨绿色霓虹灯牌，在1929年便已矗立于此。它见证了上海滩近百年的风云变幻，从民国时期的十里洋场，到新中国成立后的繁华盛景，再到改革开放后焕然一新的金融中心。老上海人常说，只要和平饭店的灯还亮着，这座城市的脉搏就不会停止跳动。",
+        "shop_name": "和平饭店",
+        "publish_date": "2026-06-10",
+    },
+    {
+        "title": "百乐门舞厅的最后一盏灯",
+        "content": "百乐门舞厅，曾被誉为'远东第一乐府'。上世纪三四十年代，这里的红色霓虹招牌每晚照亮整条愚园路，爵士乐声中，名流绅士与旗袍淑女翩翩起舞。然而岁月流转，舞厅几经易主，最终在城市更新的浪潮中画上句号。那盏标志性的霓虹灯被收藏进博物馆，成为一代人永不褪色的记忆。",
+        "shop_name": "百乐门舞厅",
+        "publish_date": "2026-06-08",
+    },
+    {
+        "title": "红星电影院：光影中的童年",
+        "content": "上世纪80年代，每个周末的傍晚，四川北路上'红星'二字的霓虹灯总会准时亮起。5毛钱一张电影票，一包奶油瓜子，就能度过一个梦幻般的夜晚。影院门口，孩子们在霓虹灯下追逐嬉戏，大人们讨论着刚刚散场的剧情。如今影院已不复往昔，但每当路过这里，那两个红字似乎还在眼前闪烁，提醒着我们那些纯粹而美好的时光。",
+        "shop_name": "红星电影院",
+        "publish_date": "2026-06-05",
+    },
+]
+
 
 def get_connection() -> sqlite3.Connection:
     """获取 SQLite 连接，启用行字典访问。"""
@@ -169,6 +190,33 @@ def init_db() -> None:
                         row["name"],
                         row["phone"],
                         row["city"],
+                    ),
+                )
+
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS stories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                content TEXT NOT NULL,
+                shop_name TEXT NOT NULL,
+                publish_date TEXT NOT NULL
+            )
+            """
+        )
+        story_count = conn.execute("SELECT COUNT(*) FROM stories").fetchone()[0]
+        if story_count == 0:
+            for row in STORY_SEED_DATA:
+                conn.execute(
+                    """
+                    INSERT INTO stories (title, content, shop_name, publish_date)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        row["title"],
+                        row["content"],
+                        row["shop_name"],
+                        row["publish_date"],
                     ),
                 )
         conn.commit()

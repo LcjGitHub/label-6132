@@ -5,6 +5,8 @@ import { WorkOrderFormPage } from "@/pages/WorkOrderFormPage";
 import { CityDashboardPage } from "@/pages/CityDashboardPage";
 import { PhotographerListPage } from "@/pages/PhotographerListPage";
 import { PhotographerFormPage } from "@/pages/PhotographerFormPage";
+import { StoryListPage } from "@/pages/StoryListPage";
+import { StoryFormPage } from "@/pages/StoryFormPage";
 import type { RepairStatus } from "@/types/workOrder";
 
 export function App() {
@@ -53,6 +55,18 @@ export function App() {
               >
                 拍摄者档案
               </NavLink>
+              <NavLink
+                to="/stories"
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`
+                }
+              >
+                故事专栏
+              </NavLink>
             </div>
           </nav>
 
@@ -72,6 +86,9 @@ export function App() {
             <Route path="/photographers" element={<PhotographerListPage />} />
             <Route path="/photographers/new" element={<PhotographerFormPage />} />
             <Route path="/photographers/edit/:id" element={<PhotographerFormPage />} />
+            <Route path="/stories" element={<StoryListPage />} />
+            <Route path="/stories/new" element={<StoryFormPage />} />
+            <Route path="/stories/edit/:id" element={<StoryFormPage />} />
           </Routes>
         </div>
       </div>

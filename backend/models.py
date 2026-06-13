@@ -85,3 +85,28 @@ class Photographer(PhotographerBase):
     id: int
 
     model_config = {"from_attributes": True}
+
+
+class StoryBase(BaseModel):
+    """故事基础字段。"""
+
+    title: str = Field(..., min_length=1, description="标题")
+    content: str = Field(..., min_length=1, description="正文")
+    shop_name: str = Field(..., min_length=1, description="关联店名")
+    publish_date: date = Field(..., description="发布日期")
+
+
+class StoryCreate(StoryBase):
+    """创建故事请求体。"""
+
+
+class StoryUpdate(StoryBase):
+    """更新故事请求体。"""
+
+
+class Story(StoryBase):
+    """故事完整记录（含 id）。"""
+
+    id: int
+
+    model_config = {"from_attributes": True}
