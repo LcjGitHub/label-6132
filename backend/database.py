@@ -2,8 +2,44 @@
 
 import sqlite3
 from pathlib import Path
+from typing import Literal
+
+SignStatus = Literal["亮", "灭", "拆"]
 
 DB_PATH = Path(__file__).parent.parent / "data" / "workorders.db"
+
+SIGN_SEED_DATA = [
+    {"city": "上海", "shop_name": "和平饭店", "status": "亮", "location": "南京东路"},
+    {"city": "上海", "shop_name": "老广茶楼", "status": "亮", "location": "淮海路"},
+    {"city": "上海", "shop_name": "红星电影院", "status": "灭", "location": "四川北路"},
+    {"city": "上海", "shop_name": "锦江饭店", "status": "亮", "location": "茂名南路"},
+    {"city": "上海", "shop_name": "霓虹酒吧", "status": "灭", "location": "衡山路"},
+    {"city": "上海", "shop_name": "上海大世界", "status": "亮", "location": "西藏南路"},
+    {"city": "上海", "shop_name": "百乐门舞厅", "status": "拆", "location": "愚园路"},
+    {"city": "上海", "shop_name": "南京理发店", "status": "亮", "location": "南京西路"},
+    {"city": "北京", "shop_name": "全聚德烤鸭店", "status": "亮", "location": "前门大街"},
+    {"city": "北京", "shop_name": "东来顺饭庄", "status": "亮", "location": "王府井"},
+    {"city": "北京", "shop_name": "瑞蚨祥绸布店", "status": "灭", "location": "大栅栏"},
+    {"city": "北京", "shop_name": "内联升鞋店", "status": "亮", "location": "前门"},
+    {"city": "北京", "shop_name": "同仁堂药店", "status": "亮", "location": "崇文门"},
+    {"city": "北京", "shop_name": "六必居酱园", "status": "拆", "location": "粮食店街"},
+    {"city": "北京", "shop_name": "荣宝斋", "status": "亮", "location": "琉璃厂"},
+    {"city": "广州", "shop_name": "陶陶居酒家", "status": "亮", "location": "北京路"},
+    {"city": "广州", "shop_name": "莲香楼", "status": "亮", "location": "上下九"},
+    {"city": "广州", "shop_name": "广州酒家", "status": "灭", "location": "文昌南路"},
+    {"city": "广州", "shop_name": "南信双皮奶", "status": "亮", "location": "第十甫路"},
+    {"city": "广州", "shop_name": "皇上皇腊味", "status": "拆", "location": "北京路"},
+    {"city": "深圳", "shop_name": "华强北电子城", "status": "亮", "location": "华强北路"},
+    {"city": "深圳", "shop_name": "东门老街", "status": "亮", "location": "解放路"},
+    {"city": "深圳", "shop_name": "国贸大厦", "status": "灭", "location": "人民南路"},
+    {"city": "深圳", "shop_name": "地王大厦", "status": "亮", "location": "深南东路"},
+    {"city": "成都", "shop_name": "龙抄手餐厅", "status": "亮", "location": "春熙路"},
+    {"city": "成都", "shop_name": "钟水饺", "status": "亮", "location": "总府街"},
+    {"city": "成都", "shop_name": "麻婆豆腐", "status": "灭", "location": "青羊宫"},
+    {"city": "成都", "shop_name": "赖汤圆", "status": "亮", "location": "总府路"},
+    {"city": "成都", "shop_name": "夫妻肺片", "status": "拆", "location": "红星路"},
+    {"city": "成都", "shop_name": "担担面", "status": "亮", "location": "太升南路"},
+]
 
 SEED_DATA = [
     {
@@ -75,6 +111,33 @@ def init_db() -> None:
                         row["fault_description"],
                         row["status"],
                         row["registration_date"],
+                    ),
+                )
+
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS neon_signs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                city TEXT NOT NULL,
+                shop_name TEXT NOT NULL,
+                status TEXT NOT NULL CHECK(status IN ('亮', '灭', '拆')),
+                location TEXT NOT NULL
+            )
+            """
+        )
+        sign_count = conn.execute("SELECT COUNT(*) FROM neon_signs").fetchone()[0]
+        if sign_count == 0:
+            for row in SIGN_SEED_DATA:
+                conn.execute(
+                    """
+                    INSERT INTO neon_signs (city, shop_name, status, location)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (
+                        row["city"],
+                        row["shop_name"],
+                        row["status"],
+                        row["location"],
                     ),
                 )
         conn.commit()

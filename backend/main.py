@@ -7,13 +7,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_connection, init_db
-from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate
+from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate, CitySignStats, SignStatsResponse
 
 app = FastAPI(title="霓虹灯维修工单管理 API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4101", "http://127.0.0.1:4101"],
+    allow_origins=["http://localhost:4101", "http://127.0.0.1:4101", "http://localhost:4103", "http://127.0.0.1:4103"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -142,5 +142,62 @@ def delete_order(order_id: int) -> None:
             raise HTTPException(status_code=404, detail="工单不存在")
         conn.execute("DELETE FROM work_orders WHERE id = ?", (order_id,))
         conn.commit()
+    finally:
+        conn.close()
+
+
+@app.get("/api/signs/stats", response_model=SignStatsResponse)
+def get_sign_stats(city: Optional[str] = None) -> SignStatsResponse:
+    """获取招牌统计数据，可按城市筛选。"""
+    conn = get_connection()
+    try:
+        city_rows = conn.execute(
+            "SELECT DISTINCT city FROM neon_signs ORDER BY city"
+        ).fetchall()
+        cities = [row["city"] for row in city_rows]
+
+        if city:
+            rows = conn.execute(
+                """
+                SELECT
+                    city,
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status = '亮' THEN 1 ELSE 0 END) as on_count,
+                    SUM(CASE WHEN status = '灭' THEN 1 ELSE 0 END) as off_count,
+                    SUM(CASE WHEN status = '拆' THEN 1 ELSE 0 END) as removed_count
+                FROM neon_signs
+                WHERE city = ?
+                GROUP BY city
+                ORDER BY city
+                """,
+                (city,),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT
+                    city,
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status = '亮' THEN 1 ELSE 0 END) as on_count,
+                    SUM(CASE WHEN status = '灭' THEN 1 ELSE 0 END) as off_count,
+                    SUM(CASE WHEN status = '拆' THEN 1 ELSE 0 END) as removed_count
+                FROM neon_signs
+                GROUP BY city
+                ORDER BY city
+                """
+            ).fetchall()
+
+        stats = [
+            CitySignStats(
+                city=row["city"],
+                total=row["total"],
+                on_count=row["on_count"],
+                off_count=row["off_count"],
+                removed_count=row["removed_count"],
+            )
+            for row in rows
+        ]
+
+        return SignStatsResponse(cities=cities, stats=stats)
     finally:
         conn.close()

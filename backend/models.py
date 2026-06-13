@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 StatusType = Literal["待处理", "进行中", "已完成"]
+SignStatusType = Literal["亮", "灭", "拆"]
 
 
 class WorkOrderBase(BaseModel):
@@ -31,3 +32,20 @@ class WorkOrder(WorkOrderBase):
     id: int
 
     model_config = {"from_attributes": True}
+
+
+class CitySignStats(BaseModel):
+    """城市招牌统计数据。"""
+
+    city: str = Field(..., description="城市名称")
+    total: int = Field(..., description="招牌总数")
+    on_count: int = Field(..., description="亮灯数量")
+    off_count: int = Field(..., description="灭灯数量")
+    removed_count: int = Field(..., description="已拆除数量")
+
+
+class SignStatsResponse(BaseModel):
+    """招牌统计响应。"""
+
+    cities: list[str] = Field(..., description="城市列表")
+    stats: list[CitySignStats] = Field(..., description="各城市统计数据")
