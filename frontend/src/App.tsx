@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes, NavLink } from "react-router-dom";
 import { WorkOrderListPage } from "@/pages/WorkOrderListPage";
 import { WorkOrderFormPage } from "@/pages/WorkOrderFormPage";
 import { CityDashboardPage } from "@/pages/CityDashboardPage";
+import { PhotographerListPage } from "@/pages/PhotographerListPage";
+import { PhotographerFormPage } from "@/pages/PhotographerFormPage";
 import type { RepairStatus } from "@/types/workOrder";
 
 export function App() {
@@ -39,6 +41,18 @@ export function App() {
               >
                 城市看板
               </NavLink>
+              <NavLink
+                to="/photographers"
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`
+                }
+              >
+                拍摄者档案
+              </NavLink>
             </div>
           </nav>
 
@@ -55,6 +69,9 @@ export function App() {
             <Route path="/new" element={<WorkOrderFormPage />} />
             <Route path="/edit/:id" element={<WorkOrderFormPage />} />
             <Route path="/dashboard" element={<CityDashboardPage />} />
+            <Route path="/photographers" element={<PhotographerListPage />} />
+            <Route path="/photographers/new" element={<PhotographerFormPage />} />
+            <Route path="/photographers/edit/:id" element={<PhotographerFormPage />} />
           </Routes>
         </div>
       </div>

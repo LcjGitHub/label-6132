@@ -74,6 +74,12 @@ SEED_DATA = [
     },
 ]
 
+PHOTOGRAPHER_SEED_DATA = [
+    {"name": "张伟", "phone": "13800138001", "city": "上海"},
+    {"name": "李娜", "phone": "13900139002", "city": "北京"},
+    {"name": "王强", "phone": "13700137003", "city": "广州"},
+]
+
 
 def get_connection() -> sqlite3.Connection:
     """获取 SQLite 连接，启用行字典访问。"""
@@ -138,6 +144,31 @@ def init_db() -> None:
                         row["shop_name"],
                         row["status"],
                         row["location"],
+                    ),
+                )
+
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS photographers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                city TEXT NOT NULL
+            )
+            """
+        )
+        photographer_count = conn.execute("SELECT COUNT(*) FROM photographers").fetchone()[0]
+        if photographer_count == 0:
+            for row in PHOTOGRAPHER_SEED_DATA:
+                conn.execute(
+                    """
+                    INSERT INTO photographers (name, phone, city)
+                    VALUES (?, ?, ?)
+                    """,
+                    (
+                        row["name"],
+                        row["phone"],
+                        row["city"],
                     ),
                 )
         conn.commit()

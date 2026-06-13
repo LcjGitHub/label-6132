@@ -7,13 +7,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_connection, init_db
-from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate, CitySignStats, SignStatsResponse
+from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate, CitySignStats, SignStatsResponse, Photographer, PhotographerCreate, PhotographerUpdate
 
 app = FastAPI(title="霓虹灯维修工单管理 API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4101", "http://127.0.0.1:4101", "http://localhost:4103", "http://127.0.0.1:4103"],
+    allow_origins=["http://localhost:4101", "http://127.0.0.1:4101", "http://localhost:4102", "http://127.0.0.1:4102", "http://localhost:4103", "http://127.0.0.1:4103"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -199,5 +199,113 @@ def get_sign_stats(city: Optional[str] = None) -> SignStatsResponse:
         ]
 
         return SignStatsResponse(cities=cities, stats=stats)
+    finally:
+        conn.close()
+
+
+def row_to_photographer(row) -> Photographer:
+    """将数据库行转为拍摄者 Pydantic 模型。"""
+    return Photographer(
+        id=row["id"],
+        name=row["name"],
+        phone=row["phone"],
+        city=row["city"],
+    )
+
+
+@app.get("/api/photographers", response_model=list[Photographer])
+def list_photographers(city: Optional[str] = None) -> list[Photographer]:
+    """获取拍摄者列表，可按城市筛选。"""
+    conn = get_connection()
+    try:
+        if city:
+            rows = conn.execute(
+                "SELECT * FROM photographers WHERE city = ? ORDER BY id",
+                (city,),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM photographers ORDER BY id"
+            ).fetchall()
+        return [row_to_photographer(r) for r in rows]
+    finally:
+        conn.close()
+
+
+@app.get("/api/photographers/{photographer_id}", response_model=Photographer)
+def get_photographer(photographer_id: int) -> Photographer:
+    """获取单条拍摄者。"""
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT * FROM photographers WHERE id = ?", (photographer_id,)
+        ).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="拍摄者不存在")
+        return row_to_photographer(row)
+    finally:
+        conn.close()
+
+
+@app.post("/api/photographers", response_model=Photographer, status_code=201)
+def create_photographer(body: PhotographerCreate) -> Photographer:
+    """新建拍摄者。"""
+    conn = get_connection()
+    try:
+        cursor = conn.execute(
+            """
+            INSERT INTO photographers (name, phone, city)
+            VALUES (?, ?, ?)
+            """,
+            (body.name, body.phone, body.city),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM photographers WHERE id = ?", (cursor.lastrowid,)
+        ).fetchone()
+        return row_to_photographer(row)
+    finally:
+        conn.close()
+
+
+@app.put("/api/photographers/{photographer_id}", response_model=Photographer)
+def update_photographer(photographer_id: int, body: PhotographerUpdate) -> Photographer:
+    """更新拍摄者。"""
+    conn = get_connection()
+    try:
+        existing = conn.execute(
+            "SELECT id FROM photographers WHERE id = ?", (photographer_id,)
+        ).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="拍摄者不存在")
+        conn.execute(
+            """
+            UPDATE photographers
+            SET name = ?, phone = ?, city = ?
+            WHERE id = ?
+            """,
+            (body.name, body.phone, body.city, photographer_id),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM photographers WHERE id = ?", (photographer_id,)
+        ).fetchone()
+        return row_to_photographer(row)
+    finally:
+        conn.close()
+
+
+@app.delete("/api/photographers/{photographer_id}", status_code=204)
+def delete_photographer(photographer_id: int) -> None:
+    """删除拍摄者。"""
+    conn = get_connection()
+    try:
+        existing = conn.execute(
+            "SELECT id FROM photographers WHERE id = ?", (photographer_id,)
+        ).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="拍摄者不存在")
+        conn.execute("DELETE FROM photographers WHERE id = ?", (photographer_id,))
+        conn.commit()
     finally:
         conn.close()

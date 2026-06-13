@@ -11,3 +11,12 @@ export const workOrderSchema = z.object({
 });
 
 export type WorkOrderSchema = z.infer<typeof workOrderSchema>;
+
+/** 拍摄者表单 Zod 校验 schema */
+export const photographerSchema = z.object({
+  name: z.string().min(1, "请输入姓名"),
+  phone: z.string().min(1, "请输入联系电话"),
+  city: z.string().min(1, "请输入常用拍摄城市"),
+});
+
+export type PhotographerSchema = z.infer<typeof photographerSchema>;

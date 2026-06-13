@@ -49,3 +49,27 @@ class SignStatsResponse(BaseModel):
 
     cities: list[str] = Field(..., description="城市列表")
     stats: list[CitySignStats] = Field(..., description="各城市统计数据")
+
+
+class PhotographerBase(BaseModel):
+    """拍摄者基础字段。"""
+
+    name: str = Field(..., min_length=1, description="姓名")
+    phone: str = Field(..., min_length=1, description="联系电话")
+    city: str = Field(..., min_length=1, description="常用拍摄城市")
+
+
+class PhotographerCreate(PhotographerBase):
+    """创建拍摄者请求体。"""
+
+
+class PhotographerUpdate(PhotographerBase):
+    """更新拍摄者请求体。"""
+
+
+class Photographer(PhotographerBase):
+    """拍摄者完整记录（含 id）。"""
+
+    id: int
+
+    model_config = {"from_attributes": True}
