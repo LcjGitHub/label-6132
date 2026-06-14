@@ -24,6 +24,9 @@ import {
 import { neonSignSchema, type NeonSignSchema } from "@/lib/schemas";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
+/**
+ * 招牌表单页：新建或编辑，含城市、店名、状态、位置与可选备注字段。
+ */
 export function SignFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);

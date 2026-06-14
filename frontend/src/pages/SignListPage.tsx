@@ -25,6 +25,9 @@ const STATUS_FILTER_OPTIONS: { label: string; value: SignStatus | null }[] = [
   { label: "拆", value: "拆" },
 ];
 
+/**
+ * 截断备注字符串，超过指定长度（默认 30 字）时以省略号结尾。
+ */
 function truncateRemark(text: string | undefined | null, max: number = 30): string | null {
   if (!text) return null;
   return text.length > max ? text.slice(0, max) + "…" : text;
@@ -42,6 +45,9 @@ function buildCityOptions(signs: NeonSign[] | undefined, statsCities: string[] |
   return [];
 }
 
+/**
+ * 招牌列表页：卡片展示 + 店名搜索 + 状态筛选 + 城市筛选，含备注摘要与增删改入口。
+ */
 export function SignListPage() {
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<SignStatus | null>(null);

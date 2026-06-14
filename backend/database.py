@@ -161,6 +161,11 @@ def init_db() -> None:
             )
             """
         )
+        remark_exists = conn.execute(
+            "SELECT COUNT(*) FROM pragma_table_info('neon_signs') WHERE name = 'remark'"
+        ).fetchone()[0]
+        if remark_exists == 0:
+            conn.execute("ALTER TABLE neon_signs ADD COLUMN remark TEXT")
         sign_count = conn.execute("SELECT COUNT(*) FROM neon_signs").fetchone()[0]
         if sign_count == 0:
             for row in SIGN_SEED_DATA:
@@ -177,6 +182,22 @@ def init_db() -> None:
                         row.get("remark"),
                     ),
                 )
+        else:
+            seed_lookup: dict[tuple[str, str], str] = {
+                (r["city"], r["shop_name"]): r["remark"]
+                for r in SIGN_SEED_DATA
+                if r.get("remark")
+            }
+            empty_rows = conn.execute(
+                "SELECT id, city, shop_name FROM neon_signs WHERE remark IS NULL OR remark = ''"
+            ).fetchall()
+            for row in empty_rows:
+                key = (row["city"], row["shop_name"])
+                if key in seed_lookup:
+                    conn.execute(
+                        "UPDATE neon_signs SET remark = ? WHERE id = ?",
+                        (seed_lookup[key], row["id"]),
+                    )
 
         conn.execute(
             """
