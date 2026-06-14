@@ -11,6 +11,7 @@ import { MaterialListPage } from "@/pages/MaterialListPage";
 import { MaterialFormPage } from "@/pages/MaterialFormPage";
 import { SignListPage } from "@/pages/SignListPage";
 import { SignFormPage } from "@/pages/SignFormPage";
+import { SignDetailPage } from "@/pages/SignDetailPage";
 import type { RepairStatus } from "@/types/workOrder";
 
 export function App() {
@@ -122,6 +123,7 @@ export function App() {
             <Route path="/materials/edit/:id" element={<MaterialFormPage />} />
             <Route path="/signs" element={<SignListPage />} />
             <Route path="/signs/new" element={<SignFormPage />} />
+            <Route path="/signs/:id" element={<SignDetailPage />} />
             <Route path="/signs/edit/:id" element={<SignFormPage />} />
           </Routes>
         </div>

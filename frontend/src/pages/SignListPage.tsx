@@ -376,38 +376,42 @@ export function SignListPage() {
             const remarkSummary = truncateRemark(sign.remark);
             return (
               <Card key={sign.id} className="overflow-hidden transition-shadow hover:shadow-md">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                        <Store className="h-5 w-5 text-primary" />
+                <Link to={`/signs/${sign.id}`} className="block">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                          <Store className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">{sign.shop_name}</CardTitle>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            编号 #{sign.id}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <CardTitle className="text-lg">{sign.shop_name}</CardTitle>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          编号 #{sign.id}
-                        </p>
+                      <SignStatusBadge status={sign.status} />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-foreground">{sign.city}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">{sign.location}</span>
+                    </div>
+                    {remarkSummary && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground">{remarkSummary}</span>
                       </div>
-                    </div>
-                    <SignStatusBadge status={sign.status} />
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-foreground">{sign.city}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">{sign.location}</span>
-                  </div>
-                  {remarkSummary && (
-                    <div className="flex items-start gap-2 text-sm">
-                      <FileText className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground">{remarkSummary}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-border mt-3">
+                    )}
+                  </CardContent>
+                </Link>
+                <div className="px-6 pb-4">
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-border">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -430,7 +434,7 @@ export function SignListPage() {
                       删除
                     </Button>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             );
           })}
