@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, Store } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Building2, MapPin, Store } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
 import { fetchSigns } from "@/api/neonSigns";
 import { fetchSignStats } from "@/api/signStats";
 import { SignStatusBadge } from "@/components/SignStatusBadge";
@@ -12,6 +12,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import type { SignStatus } from "@/types/neonSign";
+import type { NeonSign } from "@/types/neonSign";
 
 const STATUS_FILTER_OPTIONS: { label: string; value: SignStatus | null }[] = [
   { label: "全部", value: null },
@@ -19,6 +20,18 @@ const STATUS_FILTER_OPTIONS: { label: string; value: SignStatus | null }[] = [
   { label: "灭", value: "灭" },
   { label: "拆", value: "拆" },
 ];
+
+function buildCityOptions(signs: NeonSign[] | undefined, statsCities: string[] | undefined): string[] {
+  if (statsCities && statsCities.length > 0) {
+    return statsCities;
+  }
+  if (signs) {
+    const unique = Array.from(new Set(signs.map((s) => s.city)));
+    unique.sort();
+    return unique;
+  }
+  return [];
+}
 
 /**
  * 招牌列表页：卡片展示 + 状态筛选 + 城市筛选。
@@ -41,7 +54,18 @@ export function SignListPage() {
     queryFn: () => fetchSignStats(),
   });
 
-  const cities = statsData?.cities ?? [];
+  const cities = useMemo(
+    () => buildCityOptions(signs, statsData?.cities),
+    [signs, statsData?.cities]
+  );
+
+  const handleStatusSelect = (value: SignStatus | null) => {
+    setStatusFilter(value);
+  };
+
+  const handleCitySelect = (value: string | null) => {
+    setCityFilter(value);
+  };
 
   return (
     <div className="space-y-6">
@@ -56,56 +80,86 @@ export function SignListPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-6 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
           <span className="text-sm font-medium text-muted-foreground">状态：</span>
-          <div className="flex flex-wrap gap-2">
-            {STATUS_FILTER_OPTIONS.map((opt) => (
-              <Badge
-                key={opt.label}
-                variant={
-                  statusFilter === opt.value ? "default" : "outline"
-                }
-                className="cursor-pointer px-3 py-1"
-                onClick={() => setStatusFilter(opt.value)}
-              >
-                {opt.label}
-              </Badge>
-            ))}
+          <div className="flex flex-wrap gap-2" role="group" aria-label="状态筛选">
+            {STATUS_FILTER_OPTIONS.map((opt) => {
+              const isSelected = statusFilter === opt.value;
+              return (
+                <Badge
+                  key={opt.label}
+                  variant={isSelected ? "default" : "outline"}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isSelected}
+                  aria-label={`筛选状态：${opt.label}`}
+                  className="cursor-pointer px-3 py-1 select-none"
+                  onClick={() => handleStatusSelect(opt.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleStatusSelect(opt.value);
+                    }
+                  }}
+                >
+                  {opt.label}
+                </Badge>
+              );
+            })}
           </div>
         </div>
 
         {cities.length > 0 && (
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-sm font-medium text-muted-foreground">城市：</span>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setCityFilter(null)}
-                className={
-                  "inline-flex items-center rounded-md border px-3 py-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 " +
-                  (cityFilter === null
-                    ? "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80"
-                    : "text-foreground hover:bg-secondary/50")
-                }
-              >
-                全部
-              </button>
-              {cities.map((city) => (
-                <button
-                  key={city}
-                  type="button"
-                  onClick={() => setCityFilter(city)}
-                  className={
-                    "inline-flex items-center rounded-md border px-3 py-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 " +
-                    (cityFilter === city
-                      ? "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80"
-                      : "text-foreground hover:bg-secondary/50")
-                  }
-                >
-                  {city}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-2" role="group" aria-label="城市筛选">
+              {(() => {
+                const isAllSelected = cityFilter === null;
+                return (
+                  <Badge
+                    key="全部"
+                    variant={isAllSelected ? "default" : "outline"}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={isAllSelected}
+                    aria-label="显示全部城市"
+                    className="cursor-pointer px-3 py-1 select-none"
+                    onClick={() => handleCitySelect(null)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleCitySelect(null);
+                      }
+                    }}
+                  >
+                    全部
+                  </Badge>
+                );
+              })()}
+              {cities.map((city) => {
+                const isSelected = cityFilter === city;
+                return (
+                  <Badge
+                    key={city}
+                    variant={isSelected ? "default" : "outline"}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={isSelected}
+                    aria-label={`筛选城市：${city}`}
+                    className="cursor-pointer px-3 py-1 select-none"
+                    onClick={() => handleCitySelect(city)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleCitySelect(city);
+                      }
+                    }}
+                  >
+                    {city}
+                  </Badge>
+                );
+              })}
             </div>
           </div>
         )}
@@ -149,7 +203,7 @@ export function SignListPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
                   <span className="text-foreground">{sign.city}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
