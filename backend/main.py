@@ -215,8 +215,8 @@ def row_to_sign(row) -> NeonSign:
 
 
 @app.get("/api/signs", response_model=list[NeonSign])
-def list_signs(status: Optional[str] = None, city: Optional[str] = None) -> list[NeonSign]:
-    """获取招牌列表，可按状态和城市筛选。"""
+def list_signs(status: Optional[str] = None, city: Optional[str] = None, keyword: Optional[str] = None) -> list[NeonSign]:
+    """获取招牌列表，可按状态、城市和店名关键词筛选。"""
     conn = get_connection()
     try:
         query = "SELECT * FROM neon_signs WHERE 1=1"
@@ -227,6 +227,9 @@ def list_signs(status: Optional[str] = None, city: Optional[str] = None) -> list
         if city:
             query += " AND city = ?"
             params.append(city)
+        if keyword:
+            query += " AND shop_name LIKE ?"
+            params.append(f"%{keyword}%")
         query += " ORDER BY city, id"
         rows = conn.execute(query, params).fetchall()
         return [row_to_sign(r) for r in rows]

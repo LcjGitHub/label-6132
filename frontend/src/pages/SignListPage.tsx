@@ -1,16 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { Building2, MapPin, Store } from "lucide-react";
+import { Building2, MapPin, Search, Store } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { fetchSigns } from "@/api/neonSigns";
 import { fetchSignStats } from "@/api/signStats";
 import { SignStatusBadge } from "@/components/SignStatusBadge";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import type { SignStatus } from "@/types/neonSign";
 import type { NeonSign } from "@/types/neonSign";
 
@@ -34,20 +36,46 @@ function buildCityOptions(signs: NeonSign[] | undefined, statsCities: string[] |
 }
 
 /**
- * 招牌列表页：卡片展示 + 状态筛选 + 城市筛选。
+ * 招牌列表页：卡片展示 + 店名搜索 + 状态筛选 + 城市筛选。
  */
 export function SignListPage() {
   const [statusFilter, setStatusFilter] = useState<SignStatus | null>(null);
   const [cityFilter, setCityFilter] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "招牌档案管理";
   }, []);
 
   const { data: signs, isLoading, isError, error } = useQuery({
-    queryKey: ["signs", statusFilter, cityFilter],
-    queryFn: () => fetchSigns(statusFilter ?? undefined, cityFilter ?? undefined),
+    queryKey: ["signs", statusFilter, cityFilter, searchKeyword],
+    queryFn: () => fetchSigns(statusFilter ?? undefined, cityFilter ?? undefined, searchKeyword ?? undefined),
   });
+
+  const handleSearch = () => {
+    const trimmed = searchInput.trim();
+    if (trimmed) {
+      setSearchKeyword(trimmed);
+    } else {
+      setSearchKeyword(null);
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  const handleSearchBlur = () => {
+    handleSearch();
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchKeyword(null);
+  };
 
   const { data: statsData } = useQuery({
     queryKey: ["signStats"],
@@ -78,6 +106,34 @@ export function SignListPage() {
             查看各城市霓虹招牌的状态和位置信息
           </p>
         </div>
+      </div>
+
+      <div className="flex items-center gap-3 w-full max-w-md">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="输入店名关键词搜索"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            onBlur={handleSearchBlur}
+            className="pl-9 pr-9"
+            aria-label="店名搜索"
+          />
+          {searchInput && (
+            <button
+              onClick={handleClearSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="清空搜索"
+            >
+              ×
+            </button>
+          )}
+        </div>
+        <Button onClick={handleSearch} size="sm">
+          搜索
+        </Button>
       </div>
 
       <div className="flex items-center gap-6 flex-wrap">
