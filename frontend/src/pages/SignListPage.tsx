@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { cn } from "@/lib/utils";
 import type { SignStatus } from "@/types/neonSign";
 import type { NeonSign } from "@/types/neonSign";
 
@@ -62,9 +63,10 @@ export function SignListPage() {
     document.title = "招牌档案管理";
   }, []);
 
-  const { data: signResponse, isLoading, isError, error } = useQuery({
+  const { data: signResponse, isLoading, isError, error, isPlaceholderData } = useQuery({
     queryKey: ["signs", statusFilter, cityFilter, searchKeyword],
     queryFn: () => fetchSigns(statusFilter ?? undefined, cityFilter ?? undefined, searchKeyword ?? undefined),
+    placeholderData: (previousData) => previousData,
   });
 
   const signs = signResponse?.items;
@@ -282,35 +284,64 @@ export function SignListPage() {
       </div>
 
       {signStats && (
-        <div className="flex items-center gap-4 flex-wrap bg-muted/30 rounded-lg px-4 py-3 border border-border">
-          <span className="text-sm font-medium text-muted-foreground">当前筛选统计：</span>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary" className="gap-1.5 text-xs px-3 py-1">
-              <span className="font-semibold">总计</span>
-              <span className="tabular-nums font-bold text-foreground">{signStats.total}</span>
+        <div
+          role="region"
+          aria-label="当前筛选条件下的招牌状态统计"
+          className={cn(
+            "grid gap-3 sm:grid-cols-[auto,1fr] sm:items-center",
+            "bg-muted/30 rounded-lg border border-border",
+            "px-3 py-2.5 sm:px-4 sm:py-3",
+            isPlaceholderData && "opacity-60 transition-opacity"
+          )}
+        >
+          <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+            当前筛选统计：
+          </span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <Badge
+              variant="secondary"
+              className="justify-center gap-1.5 text-xs px-2 py-1.5 min-w-0"
+              aria-label={`总计 ${signStats.total} 条招牌`}
+            >
+              <span className="font-semibold shrink-0">总计</span>
+              <span className="tabular-nums font-bold text-foreground">
+                {signStats.total}
+              </span>
             </Badge>
             <Badge
               variant="outline"
-              className="gap-1.5 text-xs px-3 py-1 border-emerald-400/50 bg-emerald-50 text-emerald-700"
+              className="justify-center gap-1.5 text-xs px-2 py-1.5 min-w-0 border-emerald-400/50 bg-emerald-50 text-emerald-700"
+              aria-label={`亮灯状态 ${signStats.on_count} 条`}
             >
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="font-semibold">亮</span>
+              <span
+                className="inline-block w-2 h-2 rounded-full bg-emerald-500 shrink-0"
+                aria-hidden="true"
+              />
+              <span className="font-semibold shrink-0">亮</span>
               <span className="tabular-nums font-bold">{signStats.on_count}</span>
             </Badge>
             <Badge
               variant="outline"
-              className="gap-1.5 text-xs px-3 py-1 border-slate-400/50 bg-slate-50 text-slate-700"
+              className="justify-center gap-1.5 text-xs px-2 py-1.5 min-w-0 border-slate-400/50 bg-slate-50 text-slate-700"
+              aria-label={`灭灯状态 ${signStats.off_count} 条`}
             >
-              <span className="inline-block w-2 h-2 rounded-full bg-slate-500" />
-              <span className="font-semibold">灭</span>
+              <span
+                className="inline-block w-2 h-2 rounded-full bg-slate-500 shrink-0"
+                aria-hidden="true"
+              />
+              <span className="font-semibold shrink-0">灭</span>
               <span className="tabular-nums font-bold">{signStats.off_count}</span>
             </Badge>
             <Badge
               variant="outline"
-              className="gap-1.5 text-xs px-3 py-1 border-amber-400/50 bg-amber-50 text-amber-700"
+              className="justify-center gap-1.5 text-xs px-2 py-1.5 min-w-0 border-amber-400/50 bg-amber-50 text-amber-700"
+              aria-label={`已拆除状态 ${signStats.removed_count} 条`}
             >
-              <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
-              <span className="font-semibold">拆</span>
+              <span
+                className="inline-block w-2 h-2 rounded-full bg-amber-500 shrink-0"
+                aria-hidden="true"
+              />
+              <span className="font-semibold shrink-0">拆</span>
               <span className="tabular-nums font-bold">{signStats.removed_count}</span>
             </Badge>
           </div>
