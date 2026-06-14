@@ -10,3 +10,17 @@ export interface NeonSign {
   location: string;
   remark?: string;
 }
+
+/** 招牌状态计数统计 */
+export interface SignStatusCounts {
+  total: number;
+  on_count: number;
+  off_count: number;
+  removed_count: number;
+}
+
+/** 招牌列表响应（含状态统计） */
+export interface SignListResponse {
+  items: NeonSign[];
+  stats: SignStatusCounts;
+}

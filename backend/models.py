@@ -168,3 +168,19 @@ class NeonSign(NeonSignBase):
     id: int
 
     model_config = {"from_attributes": True}
+
+
+class SignStatusCounts(BaseModel):
+    """招牌状态计数统计。"""
+
+    total: int = Field(..., description="总条数")
+    on_count: int = Field(..., description="亮灯数量")
+    off_count: int = Field(..., description="灭灯数量")
+    removed_count: int = Field(..., description="已拆除数量")
+
+
+class SignListResponse(BaseModel):
+    """招牌列表响应（含状态统计）。"""
+
+    items: list[NeonSign] = Field(..., description="招牌列表")
+    stats: SignStatusCounts = Field(..., description="当前筛选条件下的状态统计")

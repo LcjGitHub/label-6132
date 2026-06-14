@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_connection, init_db
-from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate, CitySignStats, SignStatsResponse, Photographer, PhotographerCreate, PhotographerUpdate, Story, StoryCreate, StoryUpdate, NeonMaterial, NeonMaterialCreate, NeonMaterialUpdate, NeonSign, NeonSignCreate, NeonSignUpdate
+from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate, CitySignStats, SignStatsResponse, Photographer, PhotographerCreate, PhotographerUpdate, Story, StoryCreate, StoryUpdate, NeonMaterial, NeonMaterialCreate, NeonMaterialUpdate, NeonSign, NeonSignCreate, NeonSignUpdate, SignListResponse, SignStatusCounts
 
 app = FastAPI(title="霓虹灯维修工单管理 API", version="1.0.0")
 
@@ -215,25 +215,45 @@ def row_to_sign(row) -> NeonSign:
     )
 
 
-@app.get("/api/signs", response_model=list[NeonSign])
-def list_signs(status: Optional[str] = None, city: Optional[str] = None, keyword: Optional[str] = None) -> list[NeonSign]:
-    """获取招牌列表，可按状态、城市和店名关键词筛选。"""
+@app.get("/api/signs", response_model=SignListResponse)
+def list_signs(status: Optional[str] = None, city: Optional[str] = None, keyword: Optional[str] = None) -> SignListResponse:
+    """获取招牌列表，可按状态、城市和店名关键词筛选，附带当前筛选条件下的状态统计。"""
     conn = get_connection()
     try:
-        query = "SELECT * FROM neon_signs WHERE 1=1"
+        where_clause = "WHERE 1=1"
         params: list = []
         if status:
-            query += " AND status = ?"
+            where_clause += " AND status = ?"
             params.append(status)
         if city:
-            query += " AND city = ?"
+            where_clause += " AND city = ?"
             params.append(city)
         if keyword:
-            query += " AND shop_name LIKE ?"
+            where_clause += " AND shop_name LIKE ?"
             params.append(f"%{keyword}%")
-        query += " ORDER BY city, id"
-        rows = conn.execute(query, params).fetchall()
-        return [row_to_sign(r) for r in rows]
+
+        list_query = f"SELECT * FROM neon_signs {where_clause} ORDER BY city, id"
+        rows = conn.execute(list_query, params).fetchall()
+        items = [row_to_sign(r) for r in rows]
+
+        stats_query = f"""
+        SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN status = '亮' THEN 1 ELSE 0 END) as on_count,
+            SUM(CASE WHEN status = '灭' THEN 1 ELSE 0 END) as off_count,
+            SUM(CASE WHEN status = '拆' THEN 1 ELSE 0 END) as removed_count
+        FROM neon_signs
+        {where_clause}
+        """
+        stats_row = conn.execute(stats_query, params).fetchone()
+        stats = SignStatusCounts(
+            total=stats_row["total"] or 0,
+            on_count=stats_row["on_count"] or 0,
+            off_count=stats_row["off_count"] or 0,
+            removed_count=stats_row["removed_count"] or 0,
+        )
+
+        return SignListResponse(items=items, stats=stats)
     finally:
         conn.close()
 

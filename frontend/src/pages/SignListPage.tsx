@@ -62,10 +62,13 @@ export function SignListPage() {
     document.title = "招牌档案管理";
   }, []);
 
-  const { data: signs, isLoading, isError, error } = useQuery({
+  const { data: signResponse, isLoading, isError, error } = useQuery({
     queryKey: ["signs", statusFilter, cityFilter, searchKeyword],
     queryFn: () => fetchSigns(statusFilter ?? undefined, cityFilter ?? undefined, searchKeyword ?? undefined),
   });
+
+  const signs = signResponse?.items;
+  const signStats = signResponse?.stats;
 
   const { data: statsData } = useQuery({
     queryKey: ["signStats"],
@@ -277,6 +280,42 @@ export function SignListPage() {
           </div>
         )}
       </div>
+
+      {signStats && (
+        <div className="flex items-center gap-4 flex-wrap bg-muted/30 rounded-lg px-4 py-3 border border-border">
+          <span className="text-sm font-medium text-muted-foreground">当前筛选统计：</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="secondary" className="gap-1.5 text-xs px-3 py-1">
+              <span className="font-semibold">总计</span>
+              <span className="tabular-nums font-bold text-foreground">{signStats.total}</span>
+            </Badge>
+            <Badge
+              variant="outline"
+              className="gap-1.5 text-xs px-3 py-1 border-emerald-400/50 bg-emerald-50 text-emerald-700"
+            >
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="font-semibold">亮</span>
+              <span className="tabular-nums font-bold">{signStats.on_count}</span>
+            </Badge>
+            <Badge
+              variant="outline"
+              className="gap-1.5 text-xs px-3 py-1 border-slate-400/50 bg-slate-50 text-slate-700"
+            >
+              <span className="inline-block w-2 h-2 rounded-full bg-slate-500" />
+              <span className="font-semibold">灭</span>
+              <span className="tabular-nums font-bold">{signStats.off_count}</span>
+            </Badge>
+            <Badge
+              variant="outline"
+              className="gap-1.5 text-xs px-3 py-1 border-amber-400/50 bg-amber-50 text-amber-700"
+            >
+              <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />
+              <span className="font-semibold">拆</span>
+              <span className="tabular-nums font-bold">{signStats.removed_count}</span>
+            </Badge>
+          </div>
+        </div>
+      )}
 
       {isLoading && (
         <p className="text-muted-foreground text-center py-12">加载中…</p>
