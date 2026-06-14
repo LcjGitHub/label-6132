@@ -9,6 +9,7 @@ import { StoryListPage } from "@/pages/StoryListPage";
 import { StoryFormPage } from "@/pages/StoryFormPage";
 import { MaterialListPage } from "@/pages/MaterialListPage";
 import { MaterialFormPage } from "@/pages/MaterialFormPage";
+import { SignListPage } from "@/pages/SignListPage";
 import type { RepairStatus } from "@/types/workOrder";
 
 export function App() {
@@ -81,6 +82,18 @@ export function App() {
               >
                 材质登记
               </NavLink>
+              <NavLink
+                to="/signs"
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`
+                }
+              >
+                招牌档案
+              </NavLink>
             </div>
           </nav>
 
@@ -106,6 +119,7 @@ export function App() {
             <Route path="/materials" element={<MaterialListPage />} />
             <Route path="/materials/new" element={<MaterialFormPage />} />
             <Route path="/materials/edit/:id" element={<MaterialFormPage />} />
+            <Route path="/signs" element={<SignListPage />} />
           </Routes>
         </div>
       </div>

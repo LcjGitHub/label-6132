@@ -138,3 +138,20 @@ class NeonMaterial(NeonMaterialBase):
     id: int
 
     model_config = {"from_attributes": True}
+
+
+class NeonSignBase(BaseModel):
+    """招牌基础字段。"""
+
+    city: str = Field(..., min_length=1, description="所在城市")
+    shop_name: str = Field(..., min_length=1, description="关联店名")
+    status: SignStatusType = Field(..., description="招牌状态：亮/灭/拆")
+    location: str = Field(..., min_length=1, description="具体位置")
+
+
+class NeonSign(NeonSignBase):
+    """招牌完整记录（含 id）。"""
+
+    id: int
+
+    model_config = {"from_attributes": True}

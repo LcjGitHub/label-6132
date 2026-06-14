@@ -1,0 +1,166 @@
+import { useQuery } from "@tanstack/react-query";
+import { MapPin, Store } from "lucide-react";
+import { useState, useEffect } from "react";
+import { fetchSigns } from "@/api/neonSigns";
+import { fetchSignStats } from "@/api/signStats";
+import { SignStatusBadge } from "@/components/SignStatusBadge";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
+import type { SignStatus } from "@/types/neonSign";
+
+const STATUS_FILTER_OPTIONS: { label: string; value: SignStatus | null }[] = [
+  { label: "全部", value: null },
+  { label: "亮", value: "亮" },
+  { label: "灭", value: "灭" },
+  { label: "拆", value: "拆" },
+];
+
+/**
+ * 招牌列表页：卡片展示 + 状态筛选 + 城市筛选。
+ */
+export function SignListPage() {
+  const [statusFilter, setStatusFilter] = useState<SignStatus | null>(null);
+  const [cityFilter, setCityFilter] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = "招牌档案管理";
+  }, []);
+
+  const { data: signs, isLoading, isError, error } = useQuery({
+    queryKey: ["signs", statusFilter, cityFilter],
+    queryFn: () => fetchSigns(statusFilter ?? undefined, cityFilter ?? undefined),
+  });
+
+  const { data: statsData } = useQuery({
+    queryKey: ["signStats"],
+    queryFn: () => fetchSignStats(),
+  });
+
+  const cities = statsData?.cities ?? [];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-primary">
+            招牌档案管理
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            查看各城市霓虹招牌的状态和位置信息
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-sm font-medium text-muted-foreground">状态：</span>
+          <div className="flex flex-wrap gap-2">
+            {STATUS_FILTER_OPTIONS.map((opt) => (
+              <Badge
+                key={opt.label}
+                variant={
+                  statusFilter === opt.value ? "default" : "outline"
+                }
+                className="cursor-pointer px-3 py-1"
+                onClick={() => setStatusFilter(opt.value)}
+              >
+                {opt.label}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {cities.length > 0 && (
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-sm font-medium text-muted-foreground">城市：</span>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setCityFilter(null)}
+                className={
+                  "inline-flex items-center rounded-md border px-3 py-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 " +
+                  (cityFilter === null
+                    ? "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80"
+                    : "text-foreground hover:bg-secondary/50")
+                }
+              >
+                全部
+              </button>
+              {cities.map((city) => (
+                <button
+                  key={city}
+                  type="button"
+                  onClick={() => setCityFilter(city)}
+                  className={
+                    "inline-flex items-center rounded-md border px-3 py-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 " +
+                    (cityFilter === city
+                      ? "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80"
+                      : "text-foreground hover:bg-secondary/50")
+                  }
+                >
+                  {city}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {isLoading && (
+        <p className="text-muted-foreground text-center py-12">加载中…</p>
+      )}
+
+      {isError && (
+        <p className="text-destructive text-center py-12">
+          加载失败：{(error as Error).message}
+        </p>
+      )}
+
+      {signs && signs.length === 0 && (
+        <p className="text-muted-foreground text-center py-12">
+          暂无符合条件的招牌记录
+        </p>
+      )}
+
+      {signs && signs.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {signs.map((sign) => (
+            <Card key={sign.id} className="overflow-hidden transition-shadow hover:shadow-md">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                      <Store className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">{sign.shop_name}</CardTitle>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        编号 #{sign.id}
+                      </p>
+                    </div>
+                  </div>
+                  <SignStatusBadge status={sign.status} />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-foreground">{sign.city}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">{sign.location}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

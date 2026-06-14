@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_connection, init_db
-from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate, CitySignStats, SignStatsResponse, Photographer, PhotographerCreate, PhotographerUpdate, Story, StoryCreate, StoryUpdate, NeonMaterial, NeonMaterialCreate, NeonMaterialUpdate
+from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate, CitySignStats, SignStatsResponse, Photographer, PhotographerCreate, PhotographerUpdate, Story, StoryCreate, StoryUpdate, NeonMaterial, NeonMaterialCreate, NeonMaterialUpdate, NeonSign
 
 app = FastAPI(title="霓虹灯维修工单管理 API", version="1.0.0")
 
@@ -199,6 +199,37 @@ def get_sign_stats(city: Optional[str] = None) -> SignStatsResponse:
         ]
 
         return SignStatsResponse(cities=cities, stats=stats)
+    finally:
+        conn.close()
+
+
+def row_to_sign(row) -> NeonSign:
+    """将数据库行转为招牌 Pydantic 模型。"""
+    return NeonSign(
+        id=row["id"],
+        city=row["city"],
+        shop_name=row["shop_name"],
+        status=row["status"],
+        location=row["location"],
+    )
+
+
+@app.get("/api/signs", response_model=list[NeonSign])
+def list_signs(status: Optional[str] = None, city: Optional[str] = None) -> list[NeonSign]:
+    """获取招牌列表，可按状态和城市筛选。"""
+    conn = get_connection()
+    try:
+        query = "SELECT * FROM neon_signs WHERE 1=1"
+        params: list = []
+        if status:
+            query += " AND status = ?"
+            params.append(status)
+        if city:
+            query += " AND city = ?"
+            params.append(city)
+        query += " ORDER BY city, id"
+        rows = conn.execute(query, params).fetchall()
+        return [row_to_sign(r) for r in rows]
     finally:
         conn.close()
 
