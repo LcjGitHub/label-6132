@@ -8,6 +8,7 @@ export interface NeonSign {
   shop_name: string;
   status: SignStatus;
   location: string;
+  era_estimate?: string;
   remark?: string;
 }
 

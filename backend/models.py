@@ -147,6 +147,7 @@ class NeonSignBase(BaseModel):
     shop_name: str = Field(..., min_length=1, description="关联店名")
     status: SignStatusType = Field(..., description="招牌状态：亮/灭/拆")
     location: str = Field(..., min_length=1, description="具体位置")
+    era_estimate: Optional[str] = Field(None, description="年代估计，如1920s-1970s")
     remark: Optional[str] = Field(None, description="备注，招牌外观细节或走访见闻")
 
 

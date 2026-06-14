@@ -52,6 +52,7 @@ export function SignFormPage() {
       shop_name: "",
       status: "亮",
       location: "",
+      era_estimate: "",
       remark: "",
     },
   });
@@ -62,6 +63,7 @@ export function SignFormPage() {
       setValue("shop_name", sign.shop_name);
       setValue("status", sign.status);
       setValue("location", sign.location);
+      setValue("era_estimate", sign.era_estimate ?? "");
       setValue("remark", sign.remark ?? "");
     }
   }, [sign, setValue]);
@@ -212,6 +214,20 @@ export function SignFormPage() {
           {errors.location && (
             <p className="text-sm text-destructive">
               {errors.location.message}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="era_estimate">年代估计（选填）</Label>
+          <Input
+            id="era_estimate"
+            {...register("era_estimate")}
+            placeholder="例如：1920s-1970s"
+          />
+          {errors.era_estimate && (
+            <p className="text-sm text-destructive">
+              {errors.era_estimate.message}
             </p>
           )}
         </div>

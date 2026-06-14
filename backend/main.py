@@ -211,6 +211,7 @@ def row_to_sign(row) -> NeonSign:
         shop_name=row["shop_name"],
         status=row["status"],
         location=row["location"],
+        era_estimate=row["era_estimate"],
         remark=row["remark"],
     )
 
@@ -280,14 +281,15 @@ def create_sign(body: NeonSignCreate) -> NeonSign:
     try:
         cursor = conn.execute(
             """
-            INSERT INTO neon_signs (city, shop_name, status, location, remark)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO neon_signs (city, shop_name, status, location, era_estimate, remark)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
             (
                 body.city,
                 body.shop_name,
                 body.status,
                 body.location,
+                body.era_estimate,
                 body.remark,
             ),
         )
@@ -313,7 +315,7 @@ def update_sign(sign_id: int, body: NeonSignUpdate) -> NeonSign:
         conn.execute(
             """
             UPDATE neon_signs
-            SET city = ?, shop_name = ?, status = ?, location = ?, remark = ?
+            SET city = ?, shop_name = ?, status = ?, location = ?, era_estimate = ?, remark = ?
             WHERE id = ?
             """,
             (
@@ -321,6 +323,7 @@ def update_sign(sign_id: int, body: NeonSignUpdate) -> NeonSign:
                 body.shop_name,
                 body.status,
                 body.location,
+                body.era_estimate,
                 body.remark,
                 sign_id,
             ),

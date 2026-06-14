@@ -51,6 +51,7 @@ export const neonSignSchema = z.object({
     required_error: "请选择招牌状态",
   }),
   location: z.string().min(1, "请输入具体位置"),
+  era_estimate: z.string().optional(),
   remark: z.string().optional(),
 });
 
