@@ -110,3 +110,27 @@ class Story(StoryBase):
     id: int
 
     model_config = {"from_attributes": True}
+
+
+class NeonMaterialBase(BaseModel):
+
+    name: str = Field(..., min_length=1, description="材质名称")
+    common_colors: str = Field(..., min_length=1, description="常见颜色")
+    applicable_era: str = Field(..., min_length=1, description="适用年代")
+
+
+class NeonMaterialCreate(NeonMaterialBase):
+
+    pass
+
+
+class NeonMaterialUpdate(NeonMaterialBase):
+
+    pass
+
+
+class NeonMaterial(NeonMaterialBase):
+
+    id: int
+
+    model_config = {"from_attributes": True}

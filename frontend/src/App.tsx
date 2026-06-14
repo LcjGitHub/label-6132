@@ -7,6 +7,8 @@ import { PhotographerListPage } from "@/pages/PhotographerListPage";
 import { PhotographerFormPage } from "@/pages/PhotographerFormPage";
 import { StoryListPage } from "@/pages/StoryListPage";
 import { StoryFormPage } from "@/pages/StoryFormPage";
+import { MaterialListPage } from "@/pages/MaterialListPage";
+import { MaterialFormPage } from "@/pages/MaterialFormPage";
 import type { RepairStatus } from "@/types/workOrder";
 
 export function App() {
@@ -67,6 +69,18 @@ export function App() {
               >
                 故事专栏
               </NavLink>
+              <NavLink
+                to="/materials"
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`
+                }
+              >
+                材质登记
+              </NavLink>
             </div>
           </nav>
 
@@ -89,6 +103,9 @@ export function App() {
             <Route path="/stories" element={<StoryListPage />} />
             <Route path="/stories/new" element={<StoryFormPage />} />
             <Route path="/stories/edit/:id" element={<StoryFormPage />} />
+            <Route path="/materials" element={<MaterialListPage />} />
+            <Route path="/materials/new" element={<MaterialFormPage />} />
+            <Route path="/materials/edit/:id" element={<MaterialFormPage />} />
           </Routes>
         </div>
       </div>

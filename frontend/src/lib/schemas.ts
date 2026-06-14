@@ -35,3 +35,11 @@ export const storySchema = z.object({
 });
 
 export type StorySchema = z.infer<typeof storySchema>;
+
+export const neonMaterialSchema = z.object({
+  name: z.string().min(1, "请输入材质名称"),
+  common_colors: z.string().min(1, "请输入常见颜色"),
+  applicable_era: z.string().min(1, "请输入适用年代"),
+});
+
+export type NeonMaterialSchema = z.infer<typeof neonMaterialSchema>;

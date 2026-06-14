@@ -101,6 +101,14 @@ STORY_SEED_DATA = [
     },
 ]
 
+NEON_MATERIAL_SEED_DATA = [
+    {"name": "钠灯玻璃管", "common_colors": "暖黄、橙黄", "applicable_era": "1950s-1980s"},
+    {"name": "氖气直管", "common_colors": "红、橙红", "applicable_era": "1920s-1970s"},
+    {"name": "荧光粉涂层管", "common_colors": "蓝、绿、粉、白", "applicable_era": "1960s-1990s"},
+    {"name": "氩气汞管", "common_colors": "蓝、紫", "applicable_era": "1930s-1960s"},
+    {"name": "LED柔性霓虹带", "common_colors": "全彩可变", "applicable_era": "2000s至今"},
+]
+
 
 def get_connection() -> sqlite3.Connection:
     """获取 SQLite 连接，启用行字典访问。"""
@@ -217,6 +225,31 @@ def init_db() -> None:
                         row["content"],
                         row["shop_name"],
                         row["publish_date"],
+                    ),
+                )
+
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS neon_materials (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                common_colors TEXT NOT NULL,
+                applicable_era TEXT NOT NULL
+            )
+            """
+        )
+        material_count = conn.execute("SELECT COUNT(*) FROM neon_materials").fetchone()[0]
+        if material_count == 0:
+            for row in NEON_MATERIAL_SEED_DATA:
+                conn.execute(
+                    """
+                    INSERT INTO neon_materials (name, common_colors, applicable_era)
+                    VALUES (?, ?, ?)
+                    """,
+                    (
+                        row["name"],
+                        row["common_colors"],
+                        row["applicable_era"],
                     ),
                 )
         conn.commit()
