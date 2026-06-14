@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Building2, MapPin, Search, Store } from "lucide-react";
+import { Building2, MapPin, Search, X, Store } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { fetchSigns } from "@/api/neonSigns";
 import { fetchSignStats } from "@/api/signStats";
@@ -52,6 +52,14 @@ export function SignListPage() {
     queryKey: ["signs", statusFilter, cityFilter, searchKeyword],
     queryFn: () => fetchSigns(statusFilter ?? undefined, cityFilter ?? undefined, searchKeyword ?? undefined),
   });
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    if (value.trim() === "" && searchKeyword !== null) {
+      setSearchKeyword(null);
+    }
+  };
 
   const handleSearch = () => {
     const trimmed = searchInput.trim();
@@ -108,35 +116,37 @@ export function SignListPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 w-full max-w-md">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="输入店名关键词搜索"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            onBlur={handleSearchBlur}
-            className="pl-9 pr-9"
-            aria-label="店名搜索"
-          />
-          {searchInput && (
-            <button
-              onClick={handleClearSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label="清空搜索"
-            >
-              ×
-            </button>
-          )}
-        </div>
-        <Button onClick={handleSearch} size="sm">
-          搜索
-        </Button>
-      </div>
-
       <div className="flex items-center gap-6 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="输入店名关键词搜索"
+              value={searchInput}
+              onChange={handleSearchInputChange}
+              onKeyDown={handleSearchKeyDown}
+              onBlur={handleSearchBlur}
+              className="pl-9 pr-9"
+              aria-label="店名搜索"
+            />
+            {searchInput && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleClearSearch}
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                aria-label="清空搜索"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <Button onClick={handleSearch} size="sm">
+            搜索
+          </Button>
+        </div>
+
         <div className="flex items-center gap-3 flex-wrap">
           <span className="text-sm font-medium text-muted-foreground">状态：</span>
           <div className="flex flex-wrap gap-2" role="group" aria-label="状态筛选">
