@@ -113,6 +113,7 @@ class Story(StoryBase):
 
 
 class NeonMaterialBase(BaseModel):
+    """材质基础字段。"""
 
     name: str = Field(..., min_length=1, description="材质名称")
     common_colors: str = Field(..., min_length=1, description="常见颜色")
@@ -120,16 +121,19 @@ class NeonMaterialBase(BaseModel):
 
 
 class NeonMaterialCreate(NeonMaterialBase):
+    """创建材质请求体。"""
 
     pass
 
 
 class NeonMaterialUpdate(NeonMaterialBase):
+    """更新材质请求体。"""
 
     pass
 
 
 class NeonMaterial(NeonMaterialBase):
+    """材质完整记录（含 id）。"""
 
     id: int
 

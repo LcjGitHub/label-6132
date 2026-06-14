@@ -16,6 +16,9 @@ import { Label } from "@/components/ui/label";
 import { neonMaterialSchema, type NeonMaterialSchema } from "@/lib/schemas";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
+/**
+ * 材质表单页：新建或编辑。
+ */
 export function MaterialFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
@@ -23,7 +26,7 @@ export function MaterialFormPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: material, isLoading: isLoadingMaterial } = useQuery({
+  const { data: material, isLoading: isLoadingMaterial, isError: isMaterialError } = useQuery({
     queryKey: ["material", materialId],
     queryFn: () => fetchMaterial(materialId),
     enabled: isEdit,
@@ -95,6 +98,30 @@ export function MaterialFormPage() {
   if (isEdit && isLoadingMaterial) {
     return (
       <p className="text-muted-foreground text-center py-12">加载中…</p>
+    );
+  }
+
+  if (isEdit && isMaterialError) {
+    return (
+      <div className="mx-auto max-w-lg space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" asChild>
+            <Link to="/materials">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+          <h1 className="text-2xl font-bold">编辑材质</h1>
+        </div>
+        <div className="text-center py-16 space-y-4 border border-border rounded-lg">
+          <p className="text-destructive text-lg font-medium">材质不存在</p>
+          <p className="text-muted-foreground text-sm">
+            该材质记录可能已被删除或编号无效
+          </p>
+          <Button asChild>
+            <Link to="/materials">返回材质列表</Link>
+          </Button>
+        </div>
+      </div>
     );
   }
 
@@ -178,6 +205,12 @@ export function MaterialFormPage() {
         {saveMutation.isError && (
           <p className="text-sm text-destructive">
             保存失败，请检查输入内容后重试
+          </p>
+        )}
+
+        {deleteMutation.isError && (
+          <p className="text-sm text-destructive">
+            删除失败，请稍后重试
           </p>
         )}
       </form>

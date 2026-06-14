@@ -21,6 +21,9 @@ const NEON_COLORS = [
   "from-emerald-500/20 to-green-500/20 border-emerald-500/40",
 ];
 
+/**
+ * 材质列表页：卡片网格展示，含霓虹渐变色彩。
+ */
 export function MaterialListPage() {
   const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -95,6 +98,12 @@ export function MaterialListPage() {
       {materials && materials.length === 0 && (
         <p className="text-muted-foreground text-center py-12">
           暂无材质记录
+        </p>
+      )}
+
+      {deleteMutation.isError && (
+        <p className="text-destructive text-center py-3 bg-destructive/10 rounded-md">
+          删除失败，请稍后重试
         </p>
       )}
 

@@ -106,7 +106,7 @@ NEON_MATERIAL_SEED_DATA = [
     {"name": "氖气直管", "common_colors": "红、橙红", "applicable_era": "1920s-1970s"},
     {"name": "荧光粉涂层管", "common_colors": "蓝、绿、粉、白", "applicable_era": "1960s-1990s"},
     {"name": "氩气汞管", "common_colors": "蓝、紫", "applicable_era": "1930s-1960s"},
-    {"name": "LED柔性霓虹带", "common_colors": "全彩可变", "applicable_era": "2000s至今"},
+    {"name": "柔性霓虹灯带", "common_colors": "全彩可变", "applicable_era": "2000s至今"},
 ]
 
 

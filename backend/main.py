@@ -436,6 +436,7 @@ def row_to_material(row) -> NeonMaterial:
 
 @app.get("/api/materials", response_model=list[NeonMaterial])
 def list_materials() -> list[NeonMaterial]:
+    """获取材质列表，按编号排序。"""
     conn = get_connection()
     try:
         rows = conn.execute(
@@ -448,6 +449,7 @@ def list_materials() -> list[NeonMaterial]:
 
 @app.get("/api/materials/{material_id}", response_model=NeonMaterial)
 def get_material(material_id: int) -> NeonMaterial:
+    """获取单条材质。"""
     conn = get_connection()
     try:
         row = conn.execute(
@@ -462,6 +464,7 @@ def get_material(material_id: int) -> NeonMaterial:
 
 @app.post("/api/materials", response_model=NeonMaterial, status_code=201)
 def create_material(body: NeonMaterialCreate) -> NeonMaterial:
+    """新建材质。"""
     conn = get_connection()
     try:
         cursor = conn.execute(
@@ -482,6 +485,7 @@ def create_material(body: NeonMaterialCreate) -> NeonMaterial:
 
 @app.put("/api/materials/{material_id}", response_model=NeonMaterial)
 def update_material(material_id: int, body: NeonMaterialUpdate) -> NeonMaterial:
+    """更新材质。"""
     conn = get_connection()
     try:
         existing = conn.execute(
@@ -508,6 +512,7 @@ def update_material(material_id: int, body: NeonMaterialUpdate) -> NeonMaterial:
 
 @app.delete("/api/materials/{material_id}", status_code=204)
 def delete_material(material_id: int) -> None:
+    """删除材质。"""
     conn = get_connection()
     try:
         existing = conn.execute(
