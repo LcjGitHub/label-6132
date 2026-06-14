@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_connection, init_db
-from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate, CitySignStats, SignStatsResponse, Photographer, PhotographerCreate, PhotographerUpdate, Story, StoryCreate, StoryUpdate, NeonMaterial, NeonMaterialCreate, NeonMaterialUpdate, NeonSign
+from models import WorkOrder, WorkOrderCreate, WorkOrderUpdate, CitySignStats, SignStatsResponse, Photographer, PhotographerCreate, PhotographerUpdate, Story, StoryCreate, StoryUpdate, NeonMaterial, NeonMaterialCreate, NeonMaterialUpdate, NeonSign, NeonSignCreate, NeonSignUpdate
 
 app = FastAPI(title="霓虹灯维修工单管理 API", version="1.0.0")
 
@@ -211,6 +211,7 @@ def row_to_sign(row) -> NeonSign:
         shop_name=row["shop_name"],
         status=row["status"],
         location=row["location"],
+        remark=row["remark"],
     )
 
 
@@ -233,6 +234,98 @@ def list_signs(status: Optional[str] = None, city: Optional[str] = None, keyword
         query += " ORDER BY city, id"
         rows = conn.execute(query, params).fetchall()
         return [row_to_sign(r) for r in rows]
+    finally:
+        conn.close()
+
+
+@app.get("/api/signs/{sign_id}", response_model=NeonSign)
+def get_sign(sign_id: int) -> NeonSign:
+    """获取单条招牌。"""
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT * FROM neon_signs WHERE id = ?", (sign_id,)
+        ).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="招牌不存在")
+        return row_to_sign(row)
+    finally:
+        conn.close()
+
+
+@app.post("/api/signs", response_model=NeonSign, status_code=201)
+def create_sign(body: NeonSignCreate) -> NeonSign:
+    """新建招牌。"""
+    conn = get_connection()
+    try:
+        cursor = conn.execute(
+            """
+            INSERT INTO neon_signs (city, shop_name, status, location, remark)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                body.city,
+                body.shop_name,
+                body.status,
+                body.location,
+                body.remark,
+            ),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM neon_signs WHERE id = ?", (cursor.lastrowid,)
+        ).fetchone()
+        return row_to_sign(row)
+    finally:
+        conn.close()
+
+
+@app.put("/api/signs/{sign_id}", response_model=NeonSign)
+def update_sign(sign_id: int, body: NeonSignUpdate) -> NeonSign:
+    """更新招牌。"""
+    conn = get_connection()
+    try:
+        existing = conn.execute(
+            "SELECT id FROM neon_signs WHERE id = ?", (sign_id,)
+        ).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="招牌不存在")
+        conn.execute(
+            """
+            UPDATE neon_signs
+            SET city = ?, shop_name = ?, status = ?, location = ?, remark = ?
+            WHERE id = ?
+            """,
+            (
+                body.city,
+                body.shop_name,
+                body.status,
+                body.location,
+                body.remark,
+                sign_id,
+            ),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM neon_signs WHERE id = ?", (sign_id,)
+        ).fetchone()
+        return row_to_sign(row)
+    finally:
+        conn.close()
+
+
+@app.delete("/api/signs/{sign_id}", status_code=204)
+def delete_sign(sign_id: int) -> None:
+    """删除招牌。"""
+    conn = get_connection()
+    try:
+        existing = conn.execute(
+            "SELECT id FROM neon_signs WHERE id = ?", (sign_id,)
+        ).fetchone()
+        if not existing:
+            raise HTTPException(status_code=404, detail="招牌不存在")
+        conn.execute("DELETE FROM neon_signs WHERE id = ?", (sign_id,))
+        conn.commit()
     finally:
         conn.close()
 

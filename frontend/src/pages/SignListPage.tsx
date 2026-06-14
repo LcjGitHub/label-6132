@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { Building2, MapPin, Search, X, Store } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { Building2, MapPin, Search, X, Store, Pencil, Plus, Trash2, FileText } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
-import { fetchSigns } from "@/api/neonSigns";
+import { fetchSigns, deleteSign } from "@/api/neonSigns";
 import { fetchSignStats } from "@/api/signStats";
 import { SignStatusBadge } from "@/components/SignStatusBadge";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import type { SignStatus } from "@/types/neonSign";
 import type { NeonSign } from "@/types/neonSign";
 
@@ -22,6 +24,11 @@ const STATUS_FILTER_OPTIONS: { label: string; value: SignStatus | null }[] = [
   { label: "灭", value: "灭" },
   { label: "拆", value: "拆" },
 ];
+
+function truncateRemark(text: string | undefined | null, max: number = 30): string | null {
+  if (!text) return null;
+  return text.length > max ? text.slice(0, max) + "…" : text;
+}
 
 function buildCityOptions(signs: NeonSign[] | undefined, statsCities: string[] | undefined): string[] {
   if (statsCities && statsCities.length > 0) {
@@ -35,14 +42,15 @@ function buildCityOptions(signs: NeonSign[] | undefined, statsCities: string[] |
   return [];
 }
 
-/**
- * 招牌列表页：卡片展示 + 店名搜索 + 状态筛选 + 城市筛选。
- */
 export function SignListPage() {
+  const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<SignStatus | null>(null);
   const [cityFilter, setCityFilter] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchKeyword, setSearchKeyword] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   useEffect(() => {
     document.title = "招牌档案管理";
@@ -51,6 +59,19 @@ export function SignListPage() {
   const { data: signs, isLoading, isError, error } = useQuery({
     queryKey: ["signs", statusFilter, cityFilter, searchKeyword],
     queryFn: () => fetchSigns(statusFilter ?? undefined, cityFilter ?? undefined, searchKeyword ?? undefined),
+  });
+
+  const { data: statsData } = useQuery({
+    queryKey: ["signStats"],
+    queryFn: () => fetchSignStats(),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteSign(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["signs"] });
+      setDeletingId(null);
+    },
   });
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,11 +106,6 @@ export function SignListPage() {
     setSearchKeyword(null);
   };
 
-  const { data: statsData } = useQuery({
-    queryKey: ["signStats"],
-    queryFn: () => fetchSignStats(),
-  });
-
   const cities = useMemo(
     () => buildCityOptions(signs, statsData?.cities),
     [signs, statsData?.cities]
@@ -103,6 +119,25 @@ export function SignListPage() {
     setCityFilter(value);
   };
 
+  const handleDeleteClick = (id: number) => {
+    setPendingDeleteId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (pendingDeleteId !== null) {
+      setDeletingId(pendingDeleteId);
+      deleteMutation.mutate(pendingDeleteId);
+    }
+    setConfirmOpen(false);
+    setPendingDeleteId(null);
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmOpen(false);
+    setPendingDeleteId(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -114,6 +149,12 @@ export function SignListPage() {
             查看各城市霓虹招牌的状态和位置信息
           </p>
         </div>
+        <Button asChild>
+          <Link to="/signs/new">
+            <Plus className="h-4 w-4" />
+            新增招牌
+          </Link>
+        </Button>
       </div>
 
       <div className="flex items-center gap-6 flex-wrap">
@@ -247,40 +288,89 @@ export function SignListPage() {
         </p>
       )}
 
+      {deleteMutation.isError && (
+        <p className="text-destructive text-center py-3 bg-destructive/10 rounded-md">
+          删除失败，请稍后重试
+        </p>
+      )}
+
       {signs && signs.length > 0 && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {signs.map((sign) => (
-            <Card key={sign.id} className="overflow-hidden transition-shadow hover:shadow-md">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                      <Store className="h-5 w-5 text-primary" />
+          {signs.map((sign) => {
+            const remarkSummary = truncateRemark(sign.remark);
+            return (
+              <Card key={sign.id} className="overflow-hidden transition-shadow hover:shadow-md">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                        <Store className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg">{sign.shop_name}</CardTitle>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          编号 #{sign.id}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{sign.shop_name}</CardTitle>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        编号 #{sign.id}
-                      </p>
-                    </div>
+                    <SignStatusBadge status={sign.status} />
                   </div>
-                  <SignStatusBadge status={sign.status} />
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{sign.city}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{sign.location}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-foreground">{sign.city}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">{sign.location}</span>
+                  </div>
+                  {remarkSummary && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <FileText className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                      <span className="text-muted-foreground">{remarkSummary}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-border mt-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="gap-1"
+                    >
+                      <Link to={`/signs/edit/${sign.id}`}>
+                        <Pencil className="h-3.5 w-3.5" />
+                        编辑
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive gap-1"
+                      disabled={deletingId === sign.id}
+                      onClick={() => handleDeleteClick(sign.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      删除
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="删除招牌"
+        description="确定删除该招牌记录？此操作不可撤销。"
+        confirmText="删除"
+        cancelText="取消"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 }

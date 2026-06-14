@@ -43,3 +43,15 @@ export const neonMaterialSchema = z.object({
 });
 
 export type NeonMaterialSchema = z.infer<typeof neonMaterialSchema>;
+
+export const neonSignSchema = z.object({
+  city: z.string().min(1, "请输入所在城市"),
+  shop_name: z.string().min(1, "请输入关联店名"),
+  status: z.enum(["亮", "灭", "拆"], {
+    required_error: "请选择招牌状态",
+  }),
+  location: z.string().min(1, "请输入具体位置"),
+  remark: z.string().optional(),
+});
+
+export type NeonSignSchema = z.infer<typeof neonSignSchema>;

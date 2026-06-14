@@ -1,7 +1,7 @@
 """Pydantic 请求/响应模型。"""
 
 from datetime import date
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -147,6 +147,19 @@ class NeonSignBase(BaseModel):
     shop_name: str = Field(..., min_length=1, description="关联店名")
     status: SignStatusType = Field(..., description="招牌状态：亮/灭/拆")
     location: str = Field(..., min_length=1, description="具体位置")
+    remark: Optional[str] = Field(None, description="备注，招牌外观细节或走访见闻")
+
+
+class NeonSignCreate(NeonSignBase):
+    """创建招牌请求体。"""
+
+    pass
+
+
+class NeonSignUpdate(NeonSignBase):
+    """更新招牌请求体。"""
+
+    pass
 
 
 class NeonSign(NeonSignBase):
